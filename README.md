@@ -12,9 +12,11 @@ First, sync gradle files in the project. This will download all the dependencies
 
 ### Pre-commit hook setup
 
+Choose which script to run base on your OS. If you are using Windows, run [`pre_dev_setup_windows.sh`](pre_dev_setup_windows.sh). If you are using Linux or MacOS, run [`pre_dev_setup_unix.sh`](pre_dev_setup_unix.sh).
+
 ```bash
-chmod +x ./pre_dev_setup.sh
-./pre_dev_setup.sh
+chmod +x ./script_name # Replace script_name with the script name
+./script_name # Replace script_name with the script name
 ```
 
 Please review the script output for any potential errors. This script is designed to establish pre-commit hooks for code formatting using ktlint.
