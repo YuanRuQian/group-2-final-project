@@ -12,6 +12,12 @@ sealed class Screen(
     data object Register : Screen("Register")
 
     data object Home : Screen("Home")
+
+    data object Trips : Screen("Trips")
+
+    data object Profile : Screen("Profile")
+
+    data object Settings : Screen("Settings")
 }
 
 

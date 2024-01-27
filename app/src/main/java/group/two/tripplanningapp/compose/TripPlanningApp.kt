@@ -20,6 +20,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import group.two.tripplanningapp.compose.home.HomeScreen
+import group.two.tripplanningapp.compose.profile.ProfileScreen
+import group.two.tripplanningapp.compose.settings.SettingsScreen
+import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
@@ -36,6 +39,7 @@ fun TripPlanningApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val (openAlertDialog, setOpenAlertDialog) = remember { mutableStateOf(false) }
     val (alertDialogMessage, setAlertDialogMessage) = remember { mutableStateOf("") }
+    val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
 
     fun logout() {
         userAuthViewModel.signOut(
@@ -72,6 +76,11 @@ fun TripPlanningApp(
                 isUserLoggedIn = isLoggedIn.value ?: false,
                 logout = ::logout
             )
+        },
+        bottomBar = {
+            if(isLoggedIn.value == true) {
+                AppBottomBar(navController = navController, currentRoute = currentRoute, setCurrentRoute = setCurrentRoute)
+            }
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
@@ -153,6 +162,21 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Home.route) {
             HomeScreen(
+            )
+        }
+
+        composable(route = Screen.Trips.route) {
+            TripsScreen(
+            )
+        }
+
+        composable(route = Screen.Profile.route) {
+            ProfileScreen(
+            )
+        }
+
+        composable(route = Screen.Settings.route) {
+            SettingsScreen(
             )
         }
     }
