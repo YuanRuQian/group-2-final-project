@@ -8,7 +8,7 @@
 
 ## Pre Dev Setup
 
-First, sync gradle files in the project. This will download all the dependencies needed for the project.
+First, sync gradle files in the project. This will download all the dependencies needed for the project. ( `File > Sync Project with Gradle Files`)
 
 ### Pre-commit hook setup
 
@@ -36,3 +36,4 @@ Setting up Firebase configuration in your project is an essential step to enable
 
 4. **You are all set!**
    - With the `google-services.json` file in place, your project is now configured to use Firebase services. You can start integrating Firebase features into your app.
+   - If you encounter problems, try cleaning and rebuilding your project, or try invalidating caches and restarting Android Studio.
