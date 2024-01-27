@@ -7,3 +7,10 @@ enum class Region(val region: String, val currencyCode: String) {
     AUSTRALIA("Australia", "AUD"),
     KOREA("Korea", "KRW"),
 }
+
+
+enum class SortOption {
+    Name,
+    Likes,
+    Rating
+}
