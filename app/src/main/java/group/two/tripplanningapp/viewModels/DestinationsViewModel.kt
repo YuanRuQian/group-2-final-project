@@ -13,7 +13,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.firestore
-import com.google.firebase.storage.storage
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.DestinationTag
 import group.two.tripplanningapp.utilities.SortOption
@@ -28,8 +27,6 @@ import kotlinx.coroutines.tasks.await
 class DestinationsViewModel : ViewModel() {
 
     private val _db = Firebase.firestore
-
-    private val _storage = Firebase.storage
 
     var searchQuery by mutableStateOf("")
         private set
@@ -81,7 +78,8 @@ class DestinationsViewModel : ViewModel() {
     }
 
     private fun fetchDestinationIdsFromTags(): List<String> {
-        return _selectedTags.flatMap { it.destinations
+        return _selectedTags.flatMap {
+            it.destinations
         }.distinct()
     }
 
@@ -95,12 +93,15 @@ class DestinationsViewModel : ViewModel() {
             SortOption.Name -> {
                 destinations.sortedByDescending { it.name }
             }
+
             SortOption.Likes -> {
                 destinations.sortedByDescending { it.likes }
             }
+
             SortOption.Rating -> {
                 destinations.sortedByDescending { calculateAverageRating(it.rating) }
             }
+
             else -> {
                 destinations.sortedBy { it.name }
             }
@@ -121,7 +122,7 @@ class DestinationsViewModel : ViewModel() {
     private fun reloadDestinationDataAndApplyFiltersAndSorting() {
         viewModelScope.launch {
 
-            if(_selectedTags.isEmpty()) {
+            if (_selectedTags.isEmpty()) {
                 // skip tags filter, load all destinations
                 viewModelScope.launch {
                     try {
@@ -140,7 +141,8 @@ class DestinationsViewModel : ViewModel() {
                         val destinationsSorted = sortDestinationsBySortOption(destinationsList)
 
                         // then apply search query filter
-                        val destinationsFilteredBySearchQuery = filterDestinationsBySearchQuery(destinationsSorted)
+                        val destinationsFilteredBySearchQuery =
+                            filterDestinationsBySearchQuery(destinationsSorted)
 
                         _filteredDestinationData.value = destinationsFilteredBySearchQuery
                     } catch (e: Exception) {
@@ -158,7 +160,7 @@ class DestinationsViewModel : ViewModel() {
                 // apply tags filter
                 val destinationIds = fetchDestinationIdsFromTags()
 
-                if(destinationIds.isEmpty()) {
+                if (destinationIds.isEmpty()) {
                     _filteredDestinationData.value = emptyList()
                     return@launch
                 }
@@ -179,10 +181,12 @@ class DestinationsViewModel : ViewModel() {
                     }
 
                     // then apply sorting
-                    val destinationsSorted = sortDestinationsBySortOption(destinationsFilteredByTags)
+                    val destinationsSorted =
+                        sortDestinationsBySortOption(destinationsFilteredByTags)
 
                     // then apply search query filter
-                    val destinationsFilteredBySearchQuery = filterDestinationsBySearchQuery(destinationsSorted)
+                    val destinationsFilteredBySearchQuery =
+                        filterDestinationsBySearchQuery(destinationsSorted)
 
                     _filteredDestinationData.value = destinationsFilteredBySearchQuery
 
@@ -265,21 +269,6 @@ class DestinationsViewModel : ViewModel() {
 
             } catch (e: Exception) {
                 Log.e("DestinationsViewModel", "Error getting tags documents: ${e.message}", e)
-            }
-        }
-    }
-
-    fun loadDestinationFirstImage(path: String, setByteArray: (ByteArray) -> Unit) {
-        viewModelScope.launch {
-            // path example: gs://bucket/images/stars.jpg
-            val imageRef = _storage.getReferenceFromUrl(path)
-            Log.d("DestinationsViewModel", "Loading image: ${imageRef.downloadUrl.await()}")
-
-            val byteSize: Long = 1024 * 1024 * 5
-            imageRef.getBytes(byteSize).addOnSuccessListener {
-                setByteArray(it)
-            }.addOnFailureListener {
-                Log.e("DestinationsViewModel", "Error getting image: ${it.message}", it)
             }
         }
     }

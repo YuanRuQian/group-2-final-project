@@ -75,7 +75,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation("androidx.compose.foundation:foundation-layout")
 }
 
 // TODO: set up gradle task to generate pre-commit hook base on OS

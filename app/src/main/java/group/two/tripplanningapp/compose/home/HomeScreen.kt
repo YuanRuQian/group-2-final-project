@@ -2,10 +2,8 @@ package group.two.tripplanningapp.compose.home
 
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,22 +22,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import group.two.tripplanningapp.compose.SquaredAsyncImage
 import group.two.tripplanningapp.data.Destination
-import group.two.tripplanningapp.utilities.byteArrayToImageBitmap
 import group.two.tripplanningapp.utilities.calculateAverageRating
 import group.two.tripplanningapp.viewModels.DestinationsViewModel
 
@@ -94,8 +84,7 @@ fun HomeScreen(
             )
             SearchResults(
                 onDestinationClick = onDestinationClick,
-                destinations = destinations,
-                loadImageUrl = destinationsViewModel::loadDestinationFirstImage
+                destinations = destinations
             )
         }
     }
@@ -104,8 +93,7 @@ fun HomeScreen(
 @Composable
 fun SearchResults(
     onDestinationClick: (String) -> Unit,
-    destinations: List<Destination>,
-    loadImageUrl: (path: String, setByteArray: (ByteArray) -> Unit) -> Unit
+    destinations: List<Destination>
 ) {
     Log.d("SearchResults", "destinations length: ${destinations.size}")
 
@@ -125,8 +113,7 @@ fun SearchResults(
             itemContent = { index ->
                 DestinationItem(
                     onDestinationClick = onDestinationClick,
-                    destination = destinations[index],
-                    loadImageUrl = loadImageUrl
+                    destination = destinations[index]
                 )
             }
         )
@@ -137,21 +124,8 @@ fun SearchResults(
 @Composable
 fun DestinationItem(
     onDestinationClick: (String) -> Unit,
-    destination: Destination,
-    loadImageUrl: (path: String, setByteArray: (ByteArray) -> Unit) -> Unit
+    destination: Destination
 ) {
-    val (byteArray, setByteArray) = remember {
-        mutableStateOf<ByteArray?>(null)
-    }
-
-    LaunchedEffect(key1 = destination) {
-        if (destination.imageUrls.isNotEmpty()) {
-            loadImageUrl(destination.imageUrls[0]) {
-                setByteArray(it)
-            }
-        }
-    }
-
     @Composable
     fun renderPlaceholder() {
         Image(
@@ -167,15 +141,10 @@ fun DestinationItem(
         onDestinationClick(destination.id)
     }) {
         Column(modifier = Modifier.weight(leftPercentage)) {
-            if (byteArray == null) {
+            if (destination.imageUrls.isEmpty()) {
                 renderPlaceholder()
             } else {
-                val imageBitmap = byteArrayToImageBitmap(byteArray)
-                if (imageBitmap != null) {
-                    CircularImage(imageBitmap = imageBitmap)
-                } else {
-                    renderPlaceholder()
-                }
+                SquaredAsyncImage(uri = destination.imageUrls[0], size = 64)
             }
         }
 
@@ -195,21 +164,3 @@ fun DestinationItem(
 }
 
 
-@Composable
-fun CircularImage(imageBitmap: ImageBitmap) {
-    val painter = BitmapPainter(imageBitmap)
-
-    Box(
-        modifier = Modifier
-            .size(56.dp)
-            .clip(MaterialTheme.shapes.small)
-            .background(Color.Gray)
-    ) {
-        Image(
-            painter = painter,
-            contentDescription = "image",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
