@@ -2,9 +2,12 @@ package group.two.tripplanningapp.compose
 
 
 import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 sealed class Screen(
     val route: String,
+    val displayName: String = route,
     val navArguments: List<NamedNavArgument> = emptyList(),
 ) {
     data object Login : Screen("Login")
@@ -18,6 +21,19 @@ sealed class Screen(
     data object Profile : Screen("Profile")
 
     data object Settings : Screen("Settings")
+
+    data object DestinationDetails : Screen(
+        route = "Destination Details/{destinationId}",
+        displayName = "Destination Details",
+        navArguments =
+        listOf(
+            navArgument("destinationId") {
+                type = NavType.StringType
+            },
+        ),
+    ) {
+        fun createRoute(destinationId: String) = "Destination Details/$destinationId"
+    }
 }
 
 

@@ -3,6 +3,7 @@ package group.two.tripplanningapp.compose.home
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import group.two.tripplanningapp.viewModels.DestinationsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onDestinationClick: (String) -> Unit,
     destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
 ) {
     val destinationData = destinationsViewModel.filteredDestinationData.collectAsState()
@@ -91,6 +93,7 @@ fun HomeScreen(
                 isSortingOptionSelected = destinationsViewModel::isSelectedSortOption
             )
             SearchResults(
+                onDestinationClick = onDestinationClick,
                 destinations = destinations,
                 loadImageUrl = destinationsViewModel::loadDestinationFirstImage
             )
@@ -100,6 +103,7 @@ fun HomeScreen(
 
 @Composable
 fun SearchResults(
+    onDestinationClick: (String) -> Unit,
     destinations: List<Destination>,
     loadImageUrl: (path: String, setByteArray: (ByteArray) -> Unit) -> Unit
 ) {
@@ -120,6 +124,7 @@ fun SearchResults(
             key = { index -> destinations[index].name },
             itemContent = { index ->
                 DestinationItem(
+                    onDestinationClick = onDestinationClick,
                     destination = destinations[index],
                     loadImageUrl = loadImageUrl
                 )
@@ -131,6 +136,7 @@ fun SearchResults(
 
 @Composable
 fun DestinationItem(
+    onDestinationClick: (String) -> Unit,
     destination: Destination,
     loadImageUrl: (path: String, setByteArray: (ByteArray) -> Unit) -> Unit
 ) {
@@ -157,7 +163,9 @@ fun DestinationItem(
 
     val leftPercentage = 0.3f
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable {
+        onDestinationClick(destination.id)
+    }) {
         Column(modifier = Modifier.weight(leftPercentage)) {
             if (byteArray == null) {
                 renderPlaceholder()

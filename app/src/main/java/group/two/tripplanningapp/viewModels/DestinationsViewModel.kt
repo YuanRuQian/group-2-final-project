@@ -27,7 +27,7 @@ import kotlinx.coroutines.tasks.await
 
 class DestinationsViewModel : ViewModel() {
 
-    private val db = Firebase.firestore
+    private val _db = Firebase.firestore
 
     private val _storage = Firebase.storage
 
@@ -125,14 +125,14 @@ class DestinationsViewModel : ViewModel() {
                 // skip tags filter, load all destinations
                 viewModelScope.launch {
                     try {
-                        val querySnapshot = db.collection("destinations").get().await()
+                        val querySnapshot = _db.collection("destinations").get().await()
 
                         val destinationsList = mutableListOf<Destination>()
 
                         for (document in querySnapshot.documents) {
                             val destination = document.toObject(Destination::class.java)
                             destination?.let {
-                                destinationsList.add(it)
+                                destinationsList.add(it.copy(id = document.id))
                             }
                         }
 
@@ -166,7 +166,7 @@ class DestinationsViewModel : ViewModel() {
                 val destinationsFilteredByTags = mutableListOf<Destination>()
 
                 try {
-                    val querySnapshot = db.collection("destinations")
+                    val querySnapshot = _db.collection("destinations")
                         .whereIn(FieldPath.documentId(), destinationIds)
                         .get()
                         .await()
@@ -174,7 +174,7 @@ class DestinationsViewModel : ViewModel() {
                     for (document in querySnapshot.documents) {
                         val destination = document.toObject(Destination::class.java)
                         destination?.let {
-                            destinationsFilteredByTags.add(it)
+                            destinationsFilteredByTags.add(it.copy(id = document.id))
                         }
                     }
 
@@ -208,14 +208,14 @@ class DestinationsViewModel : ViewModel() {
         Log.d("DestinationsViewModel", "Loading destinations data")
         viewModelScope.launch {
             try {
-                val querySnapshot = db.collection("destinations").get().await()
+                val querySnapshot = _db.collection("destinations").get().await()
 
                 val destinationsList = mutableListOf<Destination>()
 
                 for (document in querySnapshot.documents) {
                     val destination = document.toObject(Destination::class.java)
                     destination?.let {
-                        destinationsList.add(it)
+                        destinationsList.add(it.copy(id = document.id))
                     }
                 }
 
@@ -235,7 +235,7 @@ class DestinationsViewModel : ViewModel() {
             try {
                 Log.d("tags", "Loading destinations tags data")
 
-                val querySnapshot = db.collection("destinationTags").get().await()
+                val querySnapshot = _db.collection("destinationTags").get().await()
 
                 val destinationTags = mutableListOf<DestinationTag>()
 
@@ -246,7 +246,7 @@ class DestinationsViewModel : ViewModel() {
                     val destinationsPath = "destinationTags/${document.id}/destinations"
 
                     // Use the concatenated path to get the "destinations" subcollection
-                    val destinationsSubcollection = db.collection(destinationsPath).get().await()
+                    val destinationsSubcollection = _db.collection(destinationsPath).get().await()
 
                     val destinationIds = mutableListOf<String>()
                     for (destinationDoc in destinationsSubcollection.documents) {
@@ -270,14 +270,17 @@ class DestinationsViewModel : ViewModel() {
     }
 
     fun loadDestinationFirstImage(path: String, setByteArray: (ByteArray) -> Unit) {
-        // path example: gs://bucket/images/stars.jpg
-        val imageRef = _storage.getReferenceFromUrl(path)
+        viewModelScope.launch {
+            // path example: gs://bucket/images/stars.jpg
+            val imageRef = _storage.getReferenceFromUrl(path)
+            Log.d("DestinationsViewModel", "Loading image: ${imageRef.downloadUrl.await()}")
 
-        val byteSize: Long = 1024 * 1024 * 5
-        imageRef.getBytes(byteSize).addOnSuccessListener {
-            setByteArray(it)
-        }.addOnFailureListener {
-            Log.e("DestinationsViewModel", "Error getting image: ${it.message}", it)
+            val byteSize: Long = 1024 * 1024 * 5
+            imageRef.getBytes(byteSize).addOnSuccessListener {
+                setByteArray(it)
+            }.addOnFailureListener {
+                Log.e("DestinationsViewModel", "Error getting image: ${it.message}", it)
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package group.two.tripplanningapp.data
 
 data class Destination(
+    val id: String = "",
     val name: String = "",
     val description: String = "",
     val location: String = "",
