@@ -65,6 +65,7 @@ import group.two.tripplanningapp.viewModels.Review
 
 @Composable
 fun ProfileScreen(
+    showSnackbarMessage: (String) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -74,14 +75,19 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.Center
     ) {
         //Text(text = "Profile Screen")
-        Profile()
+        Profile(
+            showSnackbarMessage = showSnackbarMessage
+        )
     }
 }
 
 // Composable for the Profile screen
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun Profile(profileViewModel: ProfileViewModel = viewModel()) {
+fun Profile(
+    profileViewModel: ProfileViewModel = viewModel(),
+    showSnackbarMessage: (String) -> Unit
+) {
 
     val profilePicLink by profileViewModel.profileImageUrl
     val userName by profileViewModel.displayName
@@ -102,7 +108,9 @@ fun Profile(profileViewModel: ProfileViewModel = viewModel()) {
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                profileViewModel.updateProfileImage(it)
+                profileViewModel.updateProfileImage(
+                    imageUri = it,
+                    showSnackbarMessage = showSnackbarMessage)
             }
         }
 
@@ -144,7 +152,10 @@ fun Profile(profileViewModel: ProfileViewModel = viewModel()) {
                 modifier = Modifier
                     .clickable {
                         if (isEditing){
-                            profileViewModel.updateDisplayName(editedName)
+                            profileViewModel.updateDisplayName(
+                                newDisplayName = editedName,
+                                showSnackbarMessage = showSnackbarMessage
+                            )
                         }
                         isEditing =!isEditing
                     }
@@ -168,7 +179,10 @@ fun Profile(profileViewModel: ProfileViewModel = viewModel()) {
                     onDone = {
                         keyboardController?.hide()
                         isEditing = false
-                        profileViewModel.updateDisplayName(editedName)
+                        profileViewModel.updateDisplayName(
+                            newDisplayName = editedName,
+                            showSnackbarMessage = showSnackbarMessage
+                        )
                     }
                 ),
                 modifier = Modifier

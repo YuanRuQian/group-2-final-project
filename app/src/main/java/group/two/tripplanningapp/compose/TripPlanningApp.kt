@@ -172,6 +172,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Profile.route) {
             ProfileScreen(
+                showSnackbarMessage = snackbarViewModel::showSnackbarMessage
             )
         }
 

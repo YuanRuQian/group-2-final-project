@@ -53,7 +53,7 @@ class ProfileViewModel : ViewModel() {
         Log.d(TAG, "getDisplayName: ${_profileImageUrl.value}")
         return displayName.value
     }
-    fun updateDisplayName(newDisplayName: String) {
+    fun updateDisplayName(newDisplayName: String, showSnackbarMessage: (String) -> Unit) {
         user!!.updateProfile(
             userProfileChangeRequest {
                 displayName = newDisplayName
@@ -61,6 +61,7 @@ class ProfileViewModel : ViewModel() {
         ).addOnCompleteListener{
             if (it.isSuccessful){
                 Log.d(TAG, "User display name updated.")
+                showSnackbarMessage("User display name updated.")
                 getDisplayName()
             }
         }
@@ -72,7 +73,7 @@ class ProfileViewModel : ViewModel() {
         Log.d(TAG, "getProfileImage: ${_profileImageUrl.value}")
         return profileImageUrl.value
     }
-    fun updateProfileImage(imageUri: Uri) {
+    fun updateProfileImage(imageUri: Uri, showSnackbarMessage: (String) -> Unit) {
         // Step 1: Upload Image to Firebase Storage
         val storageRef: StorageReference = storage.reference
         val imageFileName = "avatar_user_${auth.currentUser?.uid}.jpg"
@@ -89,6 +90,7 @@ class ProfileViewModel : ViewModel() {
                     ).addOnCompleteListener{
                         if (it.isSuccessful){
                             Log.d(TAG, "User profile pic updated.")
+                            showSnackbarMessage("User profile picture updated.")
                             getProfileImage()
                         }
                     }
