@@ -1,4 +1,5 @@
-#!/bin/bash
+#!C:/Program\ Files/Git/usr/bin/sh.exe
+
 
 # Run Gradle tasks to add ktlint pre-commit hooks
 ./gradlew addKtlintFormatGitPreCommitHook

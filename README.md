@@ -8,13 +8,15 @@
 
 ## Pre Dev Setup
 
-First, sync gradle files in the project. This will download all the dependencies needed for the project.
+First, sync gradle files in the project. This will download all the dependencies needed for the project. ( `File > Sync Project with Gradle Files`)
 
 ### Pre-commit hook setup
 
+Choose which script to run base on your OS. If you are using Windows, run [`pre_dev_setup_windows.sh`](pre_dev_setup_windows.sh). If you are using Linux or MacOS, run [`pre_dev_setup_unix.sh`](pre_dev_setup_unix.sh).
+
 ```bash
-chmod +x ./pre_dev_setup.sh
-./pre_dev_setup.sh
+chmod +x ./script_name # Replace script_name with the script name
+./script_name # Replace script_name with the script name
 ```
 
 Please review the script output for any potential errors. This script is designed to establish pre-commit hooks for code formatting using ktlint.
@@ -36,3 +38,4 @@ Setting up Firebase configuration in your project is an essential step to enable
 
 4. **You are all set!**
    - With the `google-services.json` file in place, your project is now configured to use Firebase services. You can start integrating Firebase features into your app.
+   - If you encounter problems, try cleaning and rebuilding your project, or try invalidating caches and restarting Android Studio.

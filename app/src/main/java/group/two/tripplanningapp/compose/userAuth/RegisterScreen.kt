@@ -62,7 +62,7 @@ fun RegisterScreen(
     val (selectedRegion, setSelectedRegion) = remember { mutableStateOf(Region.UNITED_STATES) }
     val (expanded, setExpanded) = remember { mutableStateOf(false) }
 
-    fun updateLoginButtonState() {
+    fun updateRegisterButtonState() {
         setIsRegisterButtonEnabled(
             username.isNotBlank() && email.isNotBlank() && password.isNotBlank() && isEmailValid
         )
@@ -79,7 +79,7 @@ fun RegisterScreen(
             value = username,
             onValueChange = {
                 username = it
-                updateLoginButtonState()
+                updateRegisterButtonState()
             },
             label = { Text(text = "Username") },
             singleLine = true,
@@ -99,7 +99,7 @@ fun RegisterScreen(
             onValueChange = {
                 email = it
                 setIsEmailValid(isEmailValid(email))
-                updateLoginButtonState()
+                updateRegisterButtonState()
             },
             label = { Text(if (!isEmailValid) "Email*" else "Email") },
             singleLine = true,
@@ -126,7 +126,7 @@ fun RegisterScreen(
             value = password,
             onValueChange = {
                 password = it
-                updateLoginButtonState()
+                updateRegisterButtonState()
             },
             singleLine = true,
             label = { Text("Password") },

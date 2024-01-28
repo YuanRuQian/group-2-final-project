@@ -74,3 +74,5 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+// TODO: set up gradle task to generate pre-commit hook base on OS
