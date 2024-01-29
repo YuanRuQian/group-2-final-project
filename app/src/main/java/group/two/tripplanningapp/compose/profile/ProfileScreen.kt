@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +59,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.TextStyle
 import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
@@ -103,12 +101,6 @@ fun Profile(
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    LaunchedEffect(profileViewModel.displayName, profileViewModel.profileImageUrl) {
-        profileViewModel.getProfileImage()
-        profileViewModel.getDisplayName()
-        profileViewModel.getUserReviews()
-        editedName = userName
-    }
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -257,23 +249,32 @@ fun Profile(
             ToggleButton(
                 text = "Date",
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Date,
-                onToggle = { selectedSortOption = ProfileReviewSortOptions.Date }
+                onToggle = {
+                    selectedSortOption = ProfileReviewSortOptions.Date
+                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Date)
+                }
             )
             ToggleButton(
                 text = "Location",
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Location,
-                onToggle = { selectedSortOption = ProfileReviewSortOptions.Location }
+                onToggle = {
+                    selectedSortOption = ProfileReviewSortOptions.Location
+                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Location)
+                }
             )
             ToggleButton(
                 text = "Rating",
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Rating,
-                onToggle = { selectedSortOption = ProfileReviewSortOptions.Rating }
+                onToggle = {
+                    selectedSortOption = ProfileReviewSortOptions.Rating
+                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Rating)
+                }
             )
         }
 
         // Reviews
         LazyColumn {
-            items(getSortedReviews(userReviews, selectedSortOption)) { review ->
+            items(userReviews) { review ->
                     ReviewItem(
                         profileViewModel = profileViewModel,
                         review = review,
@@ -453,12 +454,4 @@ fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarM
 
 }
 
-// Function to get sorted reviews based on the selected sorting option
-fun getSortedReviews(reviews: List<Review>, sortOption: ProfileReviewSortOptions): List<Review> {
-    return when (sortOption) {
-        ProfileReviewSortOptions.Date -> reviews.sortedByDescending { it.timestamp }
-        ProfileReviewSortOptions.Location -> reviews.sortedBy { it.destination }
-        ProfileReviewSortOptions.Rating -> reviews.sortedByDescending { it.rating }
-    }
-}
 

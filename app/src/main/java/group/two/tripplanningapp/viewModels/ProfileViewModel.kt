@@ -13,9 +13,11 @@ import androidx.compose.runtime.State
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
 
 
 class ProfileViewModel : ViewModel() {
+
     private val TAG = "TripApppDebug_ProfileViewModel"
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -32,9 +34,14 @@ class ProfileViewModel : ViewModel() {
     private val _reviews: MutableState<List<Review>> = mutableStateOf(emptyList())
     val reviews: MutableState<List<Review>> get() = _reviews
 
+    init {
+        getProfileImage()
+        getDisplayName()
+        getUserReviews()
+    }
 
     // User Display Name
-    fun getDisplayName():String{
+    private fun getDisplayName():String{
         _displayName.value = user?.displayName ?: "Unknown User Name"
         Log.d(TAG, "getDisplayName: ${_profileImageUrl.value}")
         return displayName.value
@@ -53,7 +60,7 @@ class ProfileViewModel : ViewModel() {
     }
 
     // User Profile Image
-    fun getProfileImage():String {
+    private fun getProfileImage():String {
        _profileImageUrl.value = user?.photoUrl.toString()
         Log.d(TAG, "getProfileImage: ${_profileImageUrl.value}")
         return profileImageUrl.value
@@ -89,7 +96,7 @@ class ProfileViewModel : ViewModel() {
     }
 
     // User Reviews
-    fun getUserReviews() {
+    private fun getUserReviews() {
         // Get Review IDs
         val reviewsCollection = firestore.collection("userProfiles").document(user?.uid?:"")
             .collection("reviews")
@@ -188,6 +195,15 @@ class ProfileViewModel : ViewModel() {
                 Log.e(TAG, "Error deleting review: $exception")
                 showSnackbarMessage("Error deleting review.")
             }
+    }
+
+    // Function to get sorted reviews based on the selected sorting option
+    fun profileSortReviews(sortOption: ProfileReviewSortOptions) {
+        when (sortOption) {
+            ProfileReviewSortOptions.Date -> _reviews.value = reviews.value.sortedByDescending { it.timestamp }
+            ProfileReviewSortOptions.Location -> _reviews.value =reviews.value.sortedBy { it.destination }
+            ProfileReviewSortOptions.Rating -> _reviews.value =reviews.value.sortedByDescending { it.rating }
+        }
     }
 
 
