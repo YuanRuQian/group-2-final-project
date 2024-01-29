@@ -57,6 +57,7 @@ import coil.compose.AsyncImage
 import group.two.tripplanningapp.viewModels.ProfileViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.TextStyle
@@ -94,6 +95,7 @@ fun Profile(
 
 
     var isNameEditing by remember { mutableStateOf(false) }
+    var deleteAccountClicked by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf(userName) }
 
 
@@ -149,6 +151,7 @@ fun Profile(
             Button(
                 onClick = {
                     // Handle delete account action
+                          deleteAccountClicked=true
                 },
                 contentPadding = PaddingValues(4.dp),
                 shape = MaterialTheme.shapes.medium,
@@ -159,6 +162,37 @@ fun Profile(
                     "Delete Account",
                     color = Color.White,
                     fontSize = 12.sp
+                )
+            }
+            if (deleteAccountClicked){
+                AlertDialog(
+                    onDismissRequest = { deleteAccountClicked=false},
+                    title = {
+                        Text("WARNING")
+                    },
+                    text = {
+                        Text("Are you sure you want to DELETE this account? All your reviews will also be deleted.")
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                profileViewModel.deleteAccount()
+                                deleteAccountClicked = false
+                            },
+                            colors = ButtonDefaults.buttonColors(Color.Red)
+                        ) {
+                            Text("Yes")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = {
+                                deleteAccountClicked = false
+                            }
+                        ) {
+                            Text("No")
+                        }
+                    }
                 )
             }
         }
