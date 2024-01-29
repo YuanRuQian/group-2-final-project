@@ -161,39 +161,33 @@ class ProfileViewModel : ViewModel() {
 
     // Delete Reviews
     fun deleteReview(reviewId: String, showSnackbarMessage: (String) -> Unit) {
-        var deleteInReview = false
-        var deleteInUser = false
 
         // Step 1: Delete in reviews collection: reviews\{reviewID}
         val reviewDocumentRef =
             firestore.collection("reviews").document(reviewId)
         reviewDocumentRef.delete()
             .addOnSuccessListener {
-                deleteInReview =true
+
+                // Step 2: Delete in userProfile: userProfile\{userID}\reviews\{reviewID}
+                val userReviewsCollectionRef =
+                    firestore.collection("userProfiles").document(user?.uid ?: "")
+                        .collection("reviews").document(reviewId)
+                userReviewsCollectionRef.delete()
+                    .addOnSuccessListener {
+
+                        // Post Deletions
+                        showSnackbarMessage("Review deleted successfully.")
+                        getUserReviews() // refresh the reviews
+                    }
+                    .addOnFailureListener { exception ->
+                        Log.e(TAG, "Error deleting review: $exception")
+                        showSnackbarMessage("Error deleting review.")
+                    }
             }
             .addOnFailureListener { exception ->
                 Log.e(TAG, "Error deleting review: $exception")
                 showSnackbarMessage("Error deleting review.")
             }
-
-        // Step 2: Delete in userProfile: userProfile\{userID}\reviews\{reviewID}
-        val userReviewsCollectionRef = firestore.collection("userProfiles").document(user?.uid?:"")
-            .collection("reviews").document(reviewId)
-        userReviewsCollectionRef.delete()
-            .addOnSuccessListener {
-                deleteInUser = true
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Error deleting review: $exception")
-                showSnackbarMessage("Error deleting review.")
-            }
-
-        // Post Deletion
-        if (deleteInReview&&deleteInUser){
-            showSnackbarMessage("Review deleted successfully.")
-            // refresh the reviews after a deletion
-            getUserReviews()
-        }
     }
 
 
