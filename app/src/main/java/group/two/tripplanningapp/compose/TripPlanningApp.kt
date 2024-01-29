@@ -19,6 +19,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import group.two.tripplanningapp.compose.destinationDetails.DestinationDetailsScreen
 import group.two.tripplanningapp.compose.home.HomeScreen
 import group.two.tripplanningapp.compose.profile.ProfileScreen
 import group.two.tripplanningapp.compose.settings.SettingsScreen
@@ -162,6 +163,13 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Home.route) {
             HomeScreen(
+                onDestinationClick = {
+                    navController.navigate(
+                        Screen.DestinationDetails.createRoute(
+                            destinationId = it,
+                        ),
+                    )
+                },
             )
         }
 
@@ -178,6 +186,15 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Settings.route) {
             SettingsScreen(
+            )
+        }
+
+        composable(
+            route = Screen.DestinationDetails.route,
+            arguments = Screen.DestinationDetails.navArguments,
+        ) {
+            DestinationDetailsScreen(
+                destinationId = it.arguments?.getString("destinationId") ?: ""
             )
         }
     }
