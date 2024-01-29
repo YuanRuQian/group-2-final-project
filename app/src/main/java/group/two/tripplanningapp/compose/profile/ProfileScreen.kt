@@ -339,7 +339,7 @@ fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarM
                 fontSize = 14.sp
             )
             Text(
-                text = "Time: ${formatTimestamp(review.timestamp)}",
+                text = "Time: ${review.timestamp?.let { formatTimestamp(it) }}",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
             )

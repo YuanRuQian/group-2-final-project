@@ -197,7 +197,7 @@ class ProfileViewModel : ViewModel() {
     }
 
 
-    // TO-DO: Implement delete Account Function
+    // TODO: Implement delete Account Function
     fun deleteAccount(){
 
     }
