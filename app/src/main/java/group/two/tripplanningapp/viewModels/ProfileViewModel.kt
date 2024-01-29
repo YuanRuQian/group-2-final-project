@@ -2,49 +2,46 @@ package group.two.tripplanningapp.viewModels
 
 import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import androidx.compose.runtime.State
-import java.util.UUID
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
 
 // Data classes representing user profile and reviews
-data class Review(val date: String, val location: String, val rating: Int, val description: String)
+data class Review(
+    var reviewId: String,
+    val creatorID: String,
+    val content: String,
+    val destination: String,
+    val rating: Int,
+    val timestamp: Timestamp
+) {
+    // no-argument constructor
+    constructor() : this("", "", "","", 0, Timestamp.now())
+}
 
 class ProfileViewModel : ViewModel() {
-    private val TAG = "TripApppDebug"
+    private val TAG = "TripApppDebug_ProfileViewModel"
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
-
     private val user = auth.currentUser
-
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     private val _displayName = mutableStateOf("")
-    val displayName: State<String>
-        get() = _displayName
+    val displayName: State<String> get() = _displayName
 
     private val _profileImageUrl = mutableStateOf("")
-    val profileImageUrl: State<String>
-        get() = _profileImageUrl
+    val profileImageUrl: State<String> get() = _profileImageUrl
+
+    private val _reviews: MutableState<List<Review>> = mutableStateOf(emptyList())
+    val reviews: MutableState<List<Review>> get() = _reviews
 
 
     // User Display Name
@@ -60,7 +57,6 @@ class ProfileViewModel : ViewModel() {
             }
         ).addOnCompleteListener{
             if (it.isSuccessful){
-                Log.d(TAG, "User display name updated.")
                 showSnackbarMessage("User display name updated.")
                 getDisplayName()
             }
@@ -80,7 +76,7 @@ class ProfileViewModel : ViewModel() {
         val imageRef: StorageReference = storageRef.child("/images/userProfiles/$imageFileName")
 
         imageRef.putFile(imageUri)
-            .addOnSuccessListener { taskSnapshot ->
+            .addOnSuccessListener {
                 // Step 2: Get Download URL and Update User Profile
                 imageRef.downloadUrl.addOnSuccessListener { uri ->
                     user!!.updateProfile(
@@ -103,10 +99,117 @@ class ProfileViewModel : ViewModel() {
             }
     }
 
-    fun getReview(){}
+    // User Reviews
+    fun getUserReviews() {
+        // Get Review IDs
+        val reviewsCollection = firestore.collection("userProfiles").document(user?.uid?:"")
+            .collection("reviews")
 
-    fun updateReview(){}
+        reviewsCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e(TAG, "Error getting user review IDs: $error")
+                return@addSnapshotListener
+            }
+            // Step 1: Get User Reviews' IDs
+            val userReviewIds = snapshot?.documents?.mapNotNull { document ->
+                document.id
+            } ?: emptyList()
 
-    fun deleteAccount(){}
+            // Step 2: fetch reviews from the IDs
+            fetchReviews(userReviewIds)
+        }
+    }
+    private fun fetchReviews(reviewIds: List<String>) {
+        // Initialize an empty list to store fetched reviews
+        val fetchedReviews = mutableListOf<Review>()
 
+        // Loop through each review ID and fetch the corresponding review
+        reviewIds.forEach { reviewId ->
+            val reviewDocumentRef =
+                firestore.collection("reviews").document(reviewId)
+
+            reviewDocumentRef.get().addOnSuccessListener { documentSnapshot ->
+                val review = documentSnapshot.toObject(Review::class.java)
+                review?.let {
+                    it.reviewId =reviewId
+                    // Add the fetched review to the list
+                    fetchedReviews.add(it)
+                }
+
+                // Check if all reviews have been fetched
+                if (fetchedReviews.size == reviewIds.size) {
+                    // Update with the fetched reviews
+                    _reviews.value = fetchedReviews
+                }
+            }.addOnFailureListener { exception ->
+                Log.e(TAG, "Error getting review with ID $reviewId: $exception")
+            }
+        }
+    }
+
+    // Update Reviews
+    fun updateReview(reviewId: String, newContent: String, showSnackbarMessage: (String) -> Unit) {
+        val reviewDocumentRef =
+            firestore.collection("reviews").document(reviewId)
+
+        val newTimestamp = Timestamp.now()
+        val updatedReview = hashMapOf(
+            "content" to newContent,
+            "timestamp" to newTimestamp
+        )
+
+        reviewDocumentRef.update(updatedReview.toMap())
+            .addOnSuccessListener {
+                showSnackbarMessage("Review updated successfully.")
+                // Assuming you want to refresh the reviews after an update
+                getUserReviews()
+            }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Error updating review: $exception")
+                showSnackbarMessage("Error updating review.")
+            }
+    }
+
+    // Delete Reviews
+    fun deleteReview(reviewId: String, showSnackbarMessage: (String) -> Unit) {
+        var deleteInReview = false
+        var deleteInUser = false
+
+        // Step 1: Delete in reviews collection: reviews\{reviewID}
+        val reviewDocumentRef =
+            firestore.collection("reviews").document(reviewId)
+        reviewDocumentRef.delete()
+            .addOnSuccessListener {
+                deleteInReview =true
+            }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Error deleting review: $exception")
+                showSnackbarMessage("Error deleting review.")
+            }
+
+        // Step 2: Delete in userProfile: userProfile\{userID}\reviews\{reviewID}
+        val userReviewsCollectionRef = firestore.collection("userProfiles").document(user?.uid?:"")
+            .collection("reviews").document(reviewId)
+        userReviewsCollectionRef.delete()
+            .addOnSuccessListener {
+                deleteInUser = true
+            }
+            .addOnFailureListener { exception ->
+                Log.e(TAG, "Error deleting review: $exception")
+                showSnackbarMessage("Error deleting review.")
+            }
+
+        // Post Deletion
+        if (deleteInReview&&deleteInUser){
+            showSnackbarMessage("Review deleted successfully.")
+            // refresh the reviews after a deletion
+            getUserReviews()
+        }
+    }
+
+
+    // TO-DO: Implement delete Account Function
+    fun deleteAccount(){
+
+    }
 }
