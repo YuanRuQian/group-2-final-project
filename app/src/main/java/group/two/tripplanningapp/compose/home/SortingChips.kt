@@ -12,12 +12,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import group.two.tripplanningapp.utilities.SortOption
+import group.two.tripplanningapp.utilities.DestinationSortOption
 
 @Composable
 fun SortingChips(
-    onChipClick: (SortOption) -> Unit,
-    isSortingOptionSelected: (SortOption) -> Boolean
+    onChipClick: (DestinationSortOption) -> Unit,
+    isSortingOptionSelected: (DestinationSortOption) -> Boolean
 ) {
     Text(text = "Sort by:")
     Row(
@@ -27,7 +27,7 @@ fun SortingChips(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        SortOption.entries.forEach { chip ->
+        DestinationSortOption.entries.forEach { chip ->
             SortingChip(chip, onChipClick, isSortingOptionSelected(chip))
         }
     }
@@ -36,13 +36,13 @@ fun SortingChips(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SortingChip(
-    sortOption: SortOption,
-    onClick: (SortOption) -> Unit,
+    destinationSortOption: DestinationSortOption,
+    onClick: (DestinationSortOption) -> Unit,
     selected: Boolean
 ) {
     FilterChip(
-        onClick = { onClick(sortOption) },
-        label = { Text(text = sortOption.name) },
+        onClick = { onClick(destinationSortOption) },
+        label = { Text(text = destinationSortOption.name) },
         selected = selected
     )
 }

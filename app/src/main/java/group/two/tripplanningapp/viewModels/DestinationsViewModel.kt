@@ -15,7 +15,7 @@ import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.firestore
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.DestinationTag
-import group.two.tripplanningapp.utilities.SortOption
+import group.two.tripplanningapp.utilities.DestinationSortOption
 import group.two.tripplanningapp.utilities.calculateAverageRating
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +39,7 @@ class DestinationsViewModel : ViewModel() {
 
     private val _selectedTags = mutableStateListOf<DestinationTag>()
 
-    private var _selectedSortOption by mutableStateOf<SortOption?>(null)
+    private var _selectedDestinationSortOption by mutableStateOf<DestinationSortOption?>(null)
 
     init {
         loadDestinationTagsData()
@@ -50,15 +50,15 @@ class DestinationsViewModel : ViewModel() {
         return _selectedTags.contains(tag)
     }
 
-    fun isSelectedSortOption(sortOption: SortOption): Boolean {
-        return _selectedSortOption == sortOption
+    fun isSelectedSortOption(destinationSortOption: DestinationSortOption): Boolean {
+        return _selectedDestinationSortOption == destinationSortOption
     }
 
-    fun onSortOptionChange(sortOption: SortOption) {
-        _selectedSortOption = if (_selectedSortOption == sortOption) {
+    fun onSortOptionChange(destinationSortOption: DestinationSortOption) {
+        _selectedDestinationSortOption = if (_selectedDestinationSortOption == destinationSortOption) {
             null
         } else {
-            sortOption
+            destinationSortOption
         }
         reloadDestinationDataAndApplyFiltersAndSorting()
     }
@@ -89,16 +89,16 @@ class DestinationsViewModel : ViewModel() {
     }
 
     private fun sortDestinationsBySortOption(destinations: List<Destination>): List<Destination> {
-        return when (_selectedSortOption) {
-            SortOption.Name -> {
+        return when (_selectedDestinationSortOption) {
+            DestinationSortOption.Name -> {
                 destinations.sortedByDescending { it.name }
             }
 
-            SortOption.Likes -> {
+            DestinationSortOption.Likes -> {
                 destinations.sortedByDescending { it.likes }
             }
 
-            SortOption.Rating -> {
+            DestinationSortOption.Rating -> {
                 destinations.sortedByDescending { calculateAverageRating(it.rating) }
             }
 
