@@ -62,13 +62,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.TextStyle
-import com.google.firebase.Timestamp
 import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
 import group.two.tripplanningapp.utilities.formatTimestamp
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
 
 @Composable
 fun ProfileScreen(
@@ -81,7 +77,6 @@ fun ProfileScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        //Text(text = "Profile Screen")
         Profile(
             showSnackbarMessage = showSnackbarMessage
         )
@@ -104,7 +99,7 @@ fun Profile(
     var editedName by remember { mutableStateOf(userName) }
 
 
-    var selectedSortOption by rememberSaveable { mutableStateOf(ProfileReviewSortOptions.Date) }
+    var selectedSortOption by remember { mutableStateOf(ProfileReviewSortOptions.Date) }
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
