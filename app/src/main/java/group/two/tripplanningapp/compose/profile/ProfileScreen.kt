@@ -468,7 +468,8 @@ fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarM
                             )
                             deleteClicked = false
                         }
-                    }
+                    },
+                    colors = if (saveClicked) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary) else ButtonDefaults.buttonColors(Color.Red)
                 ) {
                     Text("Yes")
                 }
