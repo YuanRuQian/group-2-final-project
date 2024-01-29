@@ -14,3 +14,7 @@ enum class SortOption {
     Likes,
     Rating
 }
+
+enum class ProfileReviewSortOptions {
+    Date, Location, Rating
+}

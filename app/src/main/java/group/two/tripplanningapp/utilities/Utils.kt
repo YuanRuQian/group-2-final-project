@@ -3,11 +3,15 @@ package group.two.tripplanningapp.utilities
 import android.util.Log
 import android.util.Patterns
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.storage.storage
 import group.two.tripplanningapp.data.Rating
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 fun isEmailValid(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -33,4 +37,11 @@ fun loadImageUrlFromFirebaseStorageUri(uri: String, setUrl: (String) -> Unit, co
         Log.d("DestinationsViewModel", "Image url: $url")
         setUrl(url)
     }
+}
+
+fun formatTimestamp(timestamp: Timestamp): String {
+    val dateFormat = SimpleDateFormat("h:mm a EEEE MM/dd/yyyy ", Locale.getDefault())
+    dateFormat.timeZone = TimeZone.getDefault()
+
+    return dateFormat.format(timestamp.toDate())
 }

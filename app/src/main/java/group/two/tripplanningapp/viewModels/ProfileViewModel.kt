@@ -12,19 +12,8 @@ import com.google.firebase.storage.StorageReference
 import androidx.compose.runtime.State
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import group.two.tripplanningapp.data.Review
 
-// Data classes representing user profile and reviews
-data class Review(
-    var reviewId: String,
-    val creatorID: String,
-    val content: String,
-    val destination: String,
-    val rating: Int,
-    val timestamp: Timestamp
-) {
-    // no-argument constructor
-    constructor() : this("", "", "","", 0, Timestamp.now())
-}
 
 class ProfileViewModel : ViewModel() {
     private val TAG = "TripApppDebug_ProfileViewModel"

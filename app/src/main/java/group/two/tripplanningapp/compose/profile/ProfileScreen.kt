@@ -1,6 +1,5 @@
 package group.two.tripplanningapp.compose.profile
 
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -9,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,10 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -61,15 +56,16 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import group.two.tripplanningapp.viewModels.ProfileViewModel
-import group.two.tripplanningapp.viewModels.Review
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.text.TextStyle
 import com.google.firebase.Timestamp
+import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
+import group.two.tripplanningapp.utilities.formatTimestamp
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -91,9 +87,7 @@ fun ProfileScreen(
         )
     }
 }
-enum class ProfileReviewSortOptions {
-    Date, Location, Rating
-}
+
 // Composable for the Profile screen
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -144,6 +138,7 @@ fun Profile(
                 .fillMaxWidth()
                 .wrapContentHeight(Alignment.Top)
         ) {
+
             // Profile Image
             Box(
                 modifier = Modifier
@@ -472,9 +467,3 @@ fun getSortedReviews(reviews: List<Review>, sortOption: ProfileReviewSortOptions
     }
 }
 
-fun formatTimestamp(timestamp: Timestamp): String {
-    val dateFormat = SimpleDateFormat("h:mm a EEEE MM/dd/yyyy ", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getDefault()
-
-    return dateFormat.format(timestamp.toDate())
-}
