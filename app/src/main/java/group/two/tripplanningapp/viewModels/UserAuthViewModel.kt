@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.firestore
+import group.two.tripplanningapp.data.LocaleConstant
 
 class UserAuthViewModel : ViewModel() {
 
@@ -28,7 +29,7 @@ class UserAuthViewModel : ViewModel() {
         _isUserLoggedIn.value = auth.currentUser != null
     }
 
-    fun signUp(email: String, password: String, username: String, localeAreaCode: String, navigateToHomeScreen: () -> Unit, showSnackbarMessage: (String) -> Unit, showDialog: (String) -> Unit) {
+    fun signUp(email: String, password: String, username: String, localeConstant: LocaleConstant, navigateToHomeScreen: () -> Unit, showSnackbarMessage: (String) -> Unit, showDialog: (String) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -42,7 +43,7 @@ class UserAuthViewModel : ViewModel() {
                             if (profileUpdateTask.isSuccessful) {
                                 // Add user details to Firestore
                                 val user = hashMapOf(
-                                    "localeAreaCode" to localeAreaCode
+                                    "localeConstantCode" to localeConstant.code
                                     // TODO: Add more user details as needed
                                 )
 

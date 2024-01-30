@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import group.two.tripplanningapp.compose.SquaredAsyncImage
@@ -20,6 +21,8 @@ import group.two.tripplanningapp.viewModels.DestinationDetailsViewModel
 @Composable
 fun DestinationDetailsScreen(
     destinationId: String,
+    formatCurrency: (Int) -> String,
+    formatTimestamp: (Long) -> String,
     destinationDetailsViewModel: DestinationDetailsViewModel = DestinationDetailsViewModel(
         destinationId
     )
@@ -37,13 +40,13 @@ fun DestinationDetailsScreen(
         if (destination == null) {
             Text(text = "Loading...")
         } else {
-            DestinationDetails(destination)
+            DestinationDetails(destination, formatCurrency, formatTimestamp)
         }
     }
 }
 
 @Composable
-fun DestinationDetails(destination: Destination) {
+fun DestinationDetails(destination: Destination, formatCurrency: (Int) -> String, formatTimestamp: (Long) -> String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -76,9 +79,12 @@ fun DestinationDetails(destination: Destination) {
 
         // TODO: render price in localized currency
         Text(
-            text = "Average Cost per Person: $${"%.2f".format(destination.averageCostPerPersonInCents / 100.0)}",
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "Average Cost per Person: ${formatCurrency(destination.averageCostPerPersonInCents)}",
+            modifier = Modifier.padding(bottom = 16.dp),
+            color = Color.Red
         )
+
+        Text(text = "Localized Current Time Format: ${formatTimestamp(System.currentTimeMillis())}", color = Color.Red)
     }
 }
 
