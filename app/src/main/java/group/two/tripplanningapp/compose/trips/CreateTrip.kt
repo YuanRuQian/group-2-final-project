@@ -5,6 +5,8 @@ import group.two.tripplanningapp.compose.Screen
 
 @Composable
 fun CreateTrip(
+    navigateToTripsScreen: () -> Unit
 ) {
+
 
 }

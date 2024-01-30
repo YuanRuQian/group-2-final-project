@@ -23,6 +23,7 @@ import group.two.tripplanningapp.compose.destinationDetails.DestinationDetailsSc
 import group.two.tripplanningapp.compose.home.HomeScreen
 import group.two.tripplanningapp.compose.profile.ProfileScreen
 import group.two.tripplanningapp.compose.settings.SettingsScreen
+import group.two.tripplanningapp.compose.trips.CreateTrip
 import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
@@ -179,6 +180,14 @@ fun TripPlanningNavHost(
             TripsScreen(
                 navigateToCreate = {
                     navController.navigate(Screen.CreateTrip.route)
+                }
+            )
+        }
+
+        composable(route = Screen.CreateTrip.route) {
+            CreateTrip(
+                navigateToTripsScreen= {
+                    navController.navigate(Screen.Trips.route)
                 }
             )
         }

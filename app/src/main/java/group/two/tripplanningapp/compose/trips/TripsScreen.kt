@@ -82,7 +82,7 @@ fun TripsScreen(
         FloatingActionButton(
             onClick = {
                 // Navigate to another screen when FAB is clicked
-                // navigateToCreate()
+                 navigateToCreate()
             },
             shape = CircleShape,
             modifier = Modifier
