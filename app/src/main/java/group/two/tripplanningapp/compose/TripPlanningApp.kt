@@ -1,5 +1,6 @@
 package group.two.tripplanningapp.compose
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import group.two.tripplanningapp.compose.destinationDetails.DestinationDetailsScreen
 import group.two.tripplanningapp.compose.home.HomeScreen
 import group.two.tripplanningapp.compose.profile.ProfileScreen
@@ -28,7 +31,6 @@ import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
 import group.two.tripplanningapp.data.LocaleConstant
-import group.two.tripplanningapp.viewModels.LocaleViewModel
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
 import kotlinx.coroutines.launch
@@ -37,7 +39,6 @@ import kotlinx.coroutines.launch
 fun TripPlanningApp(
     userAuthViewModel: UserAuthViewModel = viewModel(factory = UserAuthViewModel.Factory),
     snackbarViewModel: SnackbarViewModel = viewModel(factory = SnackbarViewModel.Factory),
-    localeViewModel: LocaleViewModel = viewModel(factory = LocaleViewModel.Factory)
 ) {
     val navController = rememberNavController()
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
@@ -45,11 +46,20 @@ fun TripPlanningApp(
     val (openAlertDialog, setOpenAlertDialog) = remember { mutableStateOf(false) }
     val (alertDialogMessage, setAlertDialogMessage) = remember { mutableStateOf("") }
     val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
-    val localeConstantsData = localeViewModel.localeConstants.collectAsState()
-    val localeConstants = localeConstantsData.value
+    val (localeConstants, setLocaleConstants) = remember { mutableStateOf<List<LocaleConstant>>(emptyList()) }
 
     LaunchedEffect(key1 = true) {
-        localeViewModel.loadLocaleData()
+        val db = FirebaseFirestore.getInstance()
+        db.collection("localeConstants").get().addOnSuccessListener { result ->
+            val loadedLocaleConstants = mutableListOf<LocaleConstant>()
+            for (document in result) {
+                val localeConstant = document.toObject(LocaleConstant::class.java)
+                loadedLocaleConstants.add(localeConstant)
+            }
+            setLocaleConstants(loadedLocaleConstants)
+        }.addOnFailureListener { exception ->
+            Log.w("TripPlanningApp", "Error getting documents.", exception)
+        }
     }
 
     fun logout() {
@@ -113,11 +123,10 @@ fun TripPlanningApp(
                 navController = navController,
                 userAuthViewModel = userAuthViewModel,
                 snackbarViewModel = snackbarViewModel,
-                formatCurrency = localeViewModel::formatCurrency,
-                formatTimestamp = localeViewModel::formatTimestamp,
+                formatCurrency = userAuthViewModel::formatCurrency,
+                formatTimestamp = userAuthViewModel::formatTimestamp,
                 showDialog = ::showDialog,
-                localeConstants = localeConstants,
-                loadCurrentUserLocaleConstantCode = localeViewModel::loadCurrentUserLocaleConstantCode,
+                localeConstants = userAuthViewModel.localeConstants.collectAsState().value,
                 logout = { logout() }
             )
         }
@@ -133,7 +142,6 @@ fun TripPlanningNavHost(
     formatTimestamp: (Long) -> String,
     showDialog: (String) -> Unit,
     localeConstants: List<LocaleConstant>,
-    loadCurrentUserLocaleConstantCode: () -> Unit,
     logout: () -> Unit
 ) {
 
@@ -184,14 +192,11 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Home.route) {
             HomeScreen(
-                loadCurrentUserLocaleConstantCode = loadCurrentUserLocaleConstantCode,
-                onDestinationClick = {
+                onDestinationClick = { destinationId ->
                     navController.navigate(
-                        Screen.DestinationDetails.createRoute(
-                            destinationId = it,
-                        ),
+                        Screen.DestinationDetails.createRoute(destinationId)
                     )
-                },
+                }
             )
         }
 

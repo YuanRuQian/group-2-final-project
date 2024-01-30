@@ -38,7 +38,6 @@ import group.two.tripplanningapp.viewModels.DestinationsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    loadCurrentUserLocaleConstantCode: () -> Unit,
     onDestinationClick: (String) -> Unit,
     destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
 ) {
@@ -47,10 +46,6 @@ fun HomeScreen(
 
     val destinationTagsData = destinationsViewModel.destinationTagsData.collectAsState()
     val destinationTags = destinationTagsData.value
-
-    LaunchedEffect(key1 = true) {
-        loadCurrentUserLocaleConstantCode()
-    }
 
     Column(
         modifier = Modifier
