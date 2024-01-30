@@ -57,10 +57,10 @@ import coil.compose.AsyncImage
 import group.two.tripplanningapp.viewModels.ProfileViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
 import group.two.tripplanningapp.utilities.formatTimestamp
@@ -68,6 +68,7 @@ import group.two.tripplanningapp.utilities.formatTimestamp
 @Composable
 fun ProfileScreen(
     showSnackbarMessage: (String) -> Unit,
+    logout:()->Unit
 ) {
     Column(
         modifier = Modifier
@@ -77,7 +78,8 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Profile(
-            showSnackbarMessage = showSnackbarMessage
+            showSnackbarMessage = showSnackbarMessage,
+            logout = logout
         )
     }
 }
@@ -87,7 +89,8 @@ fun ProfileScreen(
 @Composable
 fun Profile(
     profileViewModel: ProfileViewModel = viewModel(),
-    showSnackbarMessage: (String) -> Unit
+    showSnackbarMessage: (String) -> Unit,
+    logout: () -> Unit
 ) {
     val profilePicLink by profileViewModel.profileImageUrl
     val userName by profileViewModel.displayName
@@ -176,7 +179,7 @@ fun Profile(
                     confirmButton = {
                         Button(
                             onClick = {
-                                profileViewModel.deleteAccount()
+                                profileViewModel.deleteAccount(showSnackbarMessage, logout = logout)
                                 deleteAccountClicked = false
                             },
                             colors = ButtonDefaults.buttonColors(Color.Red)
@@ -314,6 +317,16 @@ fun Profile(
                         review = review,
                         showSnackbarMessage = showSnackbarMessage
                     )
+            }
+            if (userReviews.isEmpty()){
+                item{
+                    Text(
+                        text = "No Reviews Found",
+                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
             }
         }
     }
