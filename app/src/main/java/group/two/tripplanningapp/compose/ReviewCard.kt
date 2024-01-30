@@ -43,11 +43,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import group.two.tripplanningapp.data.Review
-import group.two.tripplanningapp.utilities.formatTimestamp
 import group.two.tripplanningapp.viewModels.ReviewViewModel
 
 @Composable
-fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMessage: (String) -> Unit, showReviewCreator: Boolean) {
+fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMessage: (String) -> Unit, showReviewCreator: Boolean, formatTimestamp: (Long) -> String) {
     var isEditing by remember { mutableStateOf(false) }
     var editedContent by remember { mutableStateOf(review.content) }
     val fontSize = 14.sp
@@ -106,12 +105,12 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
                 fontSize = 18.sp
             )
             Text(
-                text = "Created At: ${review.timeCreated?.let { formatTimestamp(it) }}",
+                text = "Created At: ${review.timeCreated?.let { formatTimestamp(it.toDate().time) }}",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             Text(
-                text = "Last Edit At: ${review.timeEdited?.let { formatTimestamp(it) }}",
+                text = "Last Edit At: ${review.timeEdited?.let { formatTimestamp(it.toDate().time) }}",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
             )

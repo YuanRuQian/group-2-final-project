@@ -28,7 +28,6 @@ fun calculateAverageRating(rating: Rating): Double {
     }
 }
 
-
 fun loadImageUrlFromFirebaseStorageUri(uri: String, setUrl: (String) -> Unit, coroutineScope: CoroutineScope) {
     coroutineScope.launch {
         // path example: gs://bucket/images/stars.jpg
@@ -37,11 +36,4 @@ fun loadImageUrlFromFirebaseStorageUri(uri: String, setUrl: (String) -> Unit, co
         Log.d("DestinationsViewModel", "Image url: $url")
         setUrl(url)
     }
-}
-
-fun formatTimestamp(timestamp: Timestamp): String {
-    val dateFormat = SimpleDateFormat("h:mm a EEEE MM/dd/yyyy ", Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getDefault()
-
-    return dateFormat.format(timestamp.toDate())
 }

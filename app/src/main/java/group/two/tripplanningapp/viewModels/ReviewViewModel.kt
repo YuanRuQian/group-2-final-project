@@ -28,6 +28,7 @@ class ReviewViewModel : ViewModel()  {
     val yourReviews: MutableState<List<Review>> get() = _yourReviews
 
     private val _curDesReviews: MutableState<List<Review>> = mutableStateOf(emptyList())
+    val curDesReviews: MutableState<List<Review>> get() = _curDesReviews
 
     init {
         getUserReviews()

@@ -63,7 +63,8 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel = viewModel(),
     reviewViewModel: ReviewViewModel,
     showSnackbarMessage: (String) -> Unit,
-    logout:()->Unit
+    logout:()->Unit,
+    formatTimestamp: (Long) -> String
 ) {
     Column(
         modifier = Modifier
@@ -76,7 +77,8 @@ fun ProfileScreen(
             profileViewModel = profileViewModel,
             reviewViewModel = reviewViewModel,
             showSnackbarMessage = showSnackbarMessage,
-            logout = logout
+            logout = logout,
+            formatTimestamp = formatTimestamp
         )
     }
 }
@@ -88,7 +90,8 @@ fun Profile(
     profileViewModel: ProfileViewModel,
     reviewViewModel: ReviewViewModel,
     showSnackbarMessage: (String) -> Unit,
-    logout: () -> Unit
+    logout: () -> Unit,
+    formatTimestamp: (Long) -> String
 ) {
     val profilePicLink by profileViewModel.profileImageUrl
     val userName by profileViewModel.displayName
@@ -320,7 +323,8 @@ fun Profile(
                         reviewViewModel = reviewViewModel,
                         review = review,
                         showSnackbarMessage = showSnackbarMessage,
-                        showReviewCreator = true
+                        showReviewCreator = true,
+                        formatTimestamp = formatTimestamp
                     )
             }
             if (userReviews.isEmpty()){

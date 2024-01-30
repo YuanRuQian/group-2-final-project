@@ -192,6 +192,7 @@ fun TripPlanningNavHost(
             HomeScreen(
                 loadCurrentUserLocaleConstantCode = loadCurrentUserLocaleConstantCode,
                 onDestinationClick = {
+                    reviewViewModel.getDestinationReviews(it)
                     navController.navigate(
                         Screen.DestinationDetails.createRoute(
                             destinationId = it,
@@ -210,7 +211,8 @@ fun TripPlanningNavHost(
             ProfileScreen(
                 reviewViewModel = reviewViewModel,
                 showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
-                logout = logout
+                logout = logout,
+                formatTimestamp = formatTimestamp
             )
         }
 
@@ -225,9 +227,10 @@ fun TripPlanningNavHost(
             arguments = Screen.DestinationDetails.navArguments,
         ) {
             DestinationDetailsScreen(
+                reviewViewModel = reviewViewModel,
+                destinationId = it.arguments?.getString("destinationId") ?: "",
                 formatCurrency = formatCurrency,
-                formatTimestamp = formatTimestamp,
-                destinationId = it.arguments?.getString("destinationId") ?: ""
+                formatTimestamp = formatTimestamp
             )
         }
     }
