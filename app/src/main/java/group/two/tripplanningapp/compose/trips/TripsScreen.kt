@@ -10,20 +10,27 @@ import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +41,11 @@ import androidx.compose.ui.unit.dp
 fun TripsScreen(
     navigateToCreate: () -> Unit
 ) {
+
+    var trips by remember { mutableStateOf(emptyList<Trip>()) }
+
+    trips = getDummyTrips()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -58,8 +70,11 @@ fun TripsScreen(
                     .fillMaxSize()
                     .padding(8.dp)
             ) {
-                items(getDummyTrips()) { trip ->
-                    TripCard(trip = trip)
+                items(trips) { trip ->
+                    TripCard(trip = trip) {
+                        // Remove the trip when close button is clicked
+                        trips = trips.filter { it != trip }
+                    }
                 }
             }
         }
@@ -100,7 +115,7 @@ data class Trip(
 
 
 @Composable
-fun TripCard(trip: Trip) {
+fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,6 +126,31 @@ fun TripCard(trip: Trip) {
             modifier = Modifier
                 .padding(16.dp)
         ) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = trip.tripName,
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = { onCloseClick() },
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close"
+                    )
+                }
+            }
+
             Text(
                 text = trip.tripName,
                 style = MaterialTheme.typography.headlineLarge,
