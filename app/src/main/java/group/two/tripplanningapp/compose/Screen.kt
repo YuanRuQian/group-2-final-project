@@ -22,6 +22,8 @@ sealed class Screen(
 
     data object Settings : Screen("Settings")
 
+    data object CreateTrip: Screen("Create")
+
     data object DestinationDetails : Screen(
         route = "Destination Details/{destinationId}",
         displayName = "Destination Details",

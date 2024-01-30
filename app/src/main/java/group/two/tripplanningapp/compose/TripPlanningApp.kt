@@ -177,6 +177,9 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Trips.route) {
             TripsScreen(
+                navigateToCreate = {
+                    navController.navigate(Screen.CreateTrip.route)
+                }
             )
         }
 
