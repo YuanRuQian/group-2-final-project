@@ -79,12 +79,12 @@ class UserAuthViewModel : ViewModel() {
     private fun loadCurrentUserLocaleConstantCode(userId: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // 从 Firestore 获取用户的 locale constant code
+                // from Firestore get locale constant code
                 val documentSnapshot = db.collection("userProfiles").document(userId).get().await()
                 val currentUserLocaleConstantCode = documentSnapshot.getString("localeConstantCode") ?: "en-US"
                 Log.d("UserAuthViewModel", "Retrieved locale constant code for current user: $currentUserLocaleConstantCode")
 
-                // 查找与 currentUserLocaleConstantCode 相匹配的 LocaleConstant
+                // find currentUserLocaleConstantCode that matches LocaleConstant
                 currentUserLocaleConstant = _localeConstants.value.find { it.code == currentUserLocaleConstantCode }
                 if (currentUserLocaleConstant != null) {
                     Log.d("UserAuthViewModel", "Found matching LocaleConstant: ${currentUserLocaleConstant?.code}")
