@@ -9,8 +9,12 @@ enum class Region(val region: String, val currencyCode: String) {
 }
 
 
-enum class SortOption {
+enum class DestinationSortOption {
     Name,
     Likes,
     Rating
+}
+
+enum class ProfileReviewSortOptions {
+    Date, Location, Rating
 }

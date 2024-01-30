@@ -103,7 +103,8 @@ fun TripPlanningApp(
                 navController = navController,
                 userAuthViewModel = userAuthViewModel,
                 snackbarViewModel = snackbarViewModel,
-                showDialog = ::showDialog
+                showDialog = ::showDialog,
+                logout = { logout() }
             )
         }
     }
@@ -114,7 +115,8 @@ fun TripPlanningNavHost(
     navController: NavHostController,
     userAuthViewModel: UserAuthViewModel,
     snackbarViewModel: SnackbarViewModel,
-    showDialog: (String) -> Unit
+    showDialog: (String) -> Unit,
+    logout: () -> Unit
 ) {
 
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
@@ -180,6 +182,8 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Profile.route) {
             ProfileScreen(
+                showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
+                logout = logout
             )
         }
 
