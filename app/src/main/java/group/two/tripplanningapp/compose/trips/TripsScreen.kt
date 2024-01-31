@@ -209,31 +209,31 @@ fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
 }
 
 
-fun getDummyTrips(): List<Trip> {
-    return listOf(
-        Trip(
-            "Trip to Paris",
-            3,
-            Privacy.Private,
-            listOf("Eiffel Tower", "Louvre Museum", "Seine River")
-        ),
-        Trip(
-            "Summer Vacation in New York",
-            5,
-            Privacy.Public,
-            listOf("Times Square", "Central Park", "Statue of Liberty")
-        ),
-        Trip(
-            "Explore Tokyo",
-            2,
-            Privacy.Private,
-            listOf("Shibuya Crossing", "Tokyo Tower", "Asakusa Temple")
-        ),
-        Trip(
-            "Weekend Getaway to London",
-            4,
-            Privacy.Public,
-            listOf("Buckingham Palace", "British Museum", "Tower Bridge")
-        )
-    )
-}
+//fun getDummyTrips(): List<Trip> {
+//    return listOf(
+//        Trip(
+//            "Trip to Paris",
+//            3,
+//            Privacy.Private,
+//            listOf("Eiffel Tower", "Louvre Museum", "Seine River")
+//        ),
+//        Trip(
+//            "Summer Vacation in New York",
+//            5,
+//            Privacy.Public,
+//            listOf("Times Square", "Central Park", "Statue of Liberty")
+//        ),
+//        Trip(
+//            "Explore Tokyo",
+//            2,
+//            Privacy.Private,
+//            listOf("Shibuya Crossing", "Tokyo Tower", "Asakusa Temple")
+//        ),
+//        Trip(
+//            "Weekend Getaway to London",
+//            4,
+//            Privacy.Public,
+//            listOf("Buckingham Palace", "British Museum", "Tower Bridge")
+//        )
+//    )
+//}
