@@ -64,6 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
 import group.two.tripplanningapp.utilities.formatTimestamp
+import group.two.tripplanningapp.viewModels.ReviewViewModel
 
 @Composable
 fun ProfileScreen(
@@ -89,12 +90,13 @@ fun ProfileScreen(
 @Composable
 fun Profile(
     profileViewModel: ProfileViewModel = viewModel(),
+    reviewViewModel: ReviewViewModel = viewModel(),
     showSnackbarMessage: (String) -> Unit,
     logout: () -> Unit
 ) {
     val profilePicLink by profileViewModel.profileImageUrl
     val userName by profileViewModel.displayName
-    val userReviews by profileViewModel.reviews
+    val userReviews by reviewViewModel.yourReviews
 
 
     var isNameEditing by remember { mutableStateOf(false) }
@@ -159,7 +161,9 @@ fun Profile(
                 contentPadding = PaddingValues(4.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(Color.Red),
-                modifier = Modifier.align(Alignment.TopEnd).heightIn(20.dp)
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .heightIn(20.dp)
             ) {
                 Text(
                     "Delete Account",
@@ -179,7 +183,11 @@ fun Profile(
                     confirmButton = {
                         Button(
                             onClick = {
-                                profileViewModel.deleteAccount(showSnackbarMessage, logout = logout)
+                                profileViewModel.deleteAccount(
+                                    reviewViewModel = reviewViewModel,
+                                    showSnackbarMessage = showSnackbarMessage,
+                                    logout = logout
+                                )
                                 deleteAccountClicked = false
                             },
                             colors = ButtonDefaults.buttonColors(Color.Red)
@@ -288,7 +296,7 @@ fun Profile(
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Date,
                 onToggle = {
                     selectedSortOption = ProfileReviewSortOptions.Date
-                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Date)
+                    reviewViewModel.profileSortReviews(ProfileReviewSortOptions.Date)
                 }
             )
             ToggleButton(
@@ -296,7 +304,7 @@ fun Profile(
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Location,
                 onToggle = {
                     selectedSortOption = ProfileReviewSortOptions.Location
-                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Location)
+                    reviewViewModel.profileSortReviews(ProfileReviewSortOptions.Location)
                 }
             )
             ToggleButton(
@@ -304,7 +312,7 @@ fun Profile(
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Rating,
                 onToggle = {
                     selectedSortOption = ProfileReviewSortOptions.Rating
-                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Rating)
+                    reviewViewModel.profileSortReviews(ProfileReviewSortOptions.Rating)
                 }
             )
         }
@@ -313,7 +321,7 @@ fun Profile(
         LazyColumn {
             items(userReviews) { review ->
                     ReviewItem(
-                        profileViewModel = profileViewModel,
+                        reviewViewModel = reviewViewModel,
                         review = review,
                         showSnackbarMessage = showSnackbarMessage
                     )
@@ -322,7 +330,9 @@ fun Profile(
                 item{
                     Text(
                         text = "No Reviews Found",
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -358,7 +368,7 @@ fun ToggleButton(text: String, isSelected: Boolean, onToggle: () -> Unit) {
 }
 
 @Composable
-fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarMessage: (String) -> Unit) {
+fun ReviewItem(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMessage: (String) -> Unit) {
     var isEditing by remember { mutableStateOf(false) }
     var editedContent by remember { mutableStateOf(review.content) }
     val fontSize = 14.sp
@@ -387,7 +397,12 @@ fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarM
                 fontSize = 14.sp
             )
             Text(
-                text = "Time: ${review.timestamp?.let { formatTimestamp(it) }}",
+                text = "Created At: ${review.timeCreated?.let { formatTimestamp(it) }}",
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = "Last Edit At: ${review.timeEdited?.let { formatTimestamp(it) }}",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -466,16 +481,16 @@ fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarM
                 Button(
                     onClick = {
                         if (saveClicked){
-                            profileViewModel.updateReview(
+                            reviewViewModel.updateReview(
                                 reviewId = review.reviewId,
                                 newContent = editedContent,
-                                showSnackbarMessage = showSnackbarMessage
+                                showSnackbarMessage = showSnackbarMessage,
                             )
                             saveClicked = false
                             isEditing = false
                         }
                         else if (deleteClicked){
-                            profileViewModel.deleteReview(
+                            reviewViewModel.deleteReview(
                                 reviewId = review.reviewId,
                                 showSnackbarMessage = showSnackbarMessage
                             )
