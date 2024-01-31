@@ -1,12 +1,10 @@
 package group.two.tripplanningapp.compose.trips
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import group.two.tripplanningapp.data.Trip
+import group.two.tripplanningapp.viewModels.TripsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +44,9 @@ fun TripsScreen(
 
     var trips by remember { mutableStateOf(emptyList<Trip>()) }
 
-    trips = getDummyTrips()
+//    TripsViewModel.trips = getDummyTrips()
+
+    trips = TripsViewModel.trips
 
     Box(
         modifier = Modifier
@@ -73,7 +75,9 @@ fun TripsScreen(
                 items(trips) { trip ->
                     TripCard(trip = trip) {
                         // Remove the trip when close button is clicked
+                        TripsViewModel.trips = TripsViewModel.trips.filter { it != trip }
                         trips = trips.filter { it != trip }
+
                     }
                 }
             }
@@ -103,12 +107,7 @@ enum class Privacy {
 
 
 
-data class Trip(
-    val tripName: String,
-    val numberOfPeople: Int,
-    var privacy: Privacy, // Assuming Privacy is an enum class with Private and Public options
-    val destinations: List<String>
-)
+
 
 
 
