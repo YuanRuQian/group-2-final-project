@@ -151,12 +151,6 @@ fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
             }
 
             Text(
-                text = trip.tripName,
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier
-                    .padding(bottom = 4.dp)
-            )
-            Text(
                 text = "Number of People: ${trip.numberOfPeople}",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
