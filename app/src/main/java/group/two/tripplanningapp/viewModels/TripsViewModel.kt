@@ -38,6 +38,24 @@ class TripsViewModel : ViewModel() {
 
     companion object {
         var trips = emptyList<Trip>()
+
+        fun fetchTrips() {
+            val auth: FirebaseAuth = FirebaseAuth.getInstance()
+            val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+            val user = auth.currentUser
+            // Use Firebase API to fetch trips data
+            // Replace the following code with your actual Firebase logic
+            val firebaseTrips = firestore.collection("userProfiles").document(user?.uid ?: "")
+            Log.d("JERRY FETCH!!!!!",firebaseTrips.toString())
+            Log.d("Jerry User", user.toString())
+            Log.d("Jerry auth", auth.toString())
+            Log.d("Jerry firestore", firestore.toString())
+
+        // Your logic to fetch trips from Firebase
+
+            // Update the StateFlow with the fetched trips
+//            _trips.value = firebaseTrips
+        }
     }
 
 

@@ -41,6 +41,7 @@ import group.two.tripplanningapp.viewModels.TripsViewModel
 fun TripsScreen(
     navigateToCreate: () -> Unit
 ) {
+    TripsViewModel.fetchTrips()
 
     var trips by remember { mutableStateOf(emptyList<Trip>()) }
 
@@ -115,6 +116,7 @@ enum class Privacy {
 
 @Composable
 fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

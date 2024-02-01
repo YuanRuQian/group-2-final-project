@@ -40,9 +40,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import group.two.tripplanningapp.viewModels.DestinationsViewModel
 
 @OptIn(ExperimentalMaterialApi::class)
 //@Composable
@@ -157,12 +160,19 @@ import androidx.compose.ui.unit.Dp
 
 @Composable
 fun CreateTrip(
-    navigateToTripsScreen: () -> Unit
+    navigateToTripsScreen: () -> Unit,
+    destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
 ) {
     var tripName by remember { mutableStateOf("") }
     var numberOfPeople by remember { mutableStateOf(1) }
     var privacy by remember { mutableStateOf(Privacy.Private) }
-    val destinations = listOf("Destination1", "Destination2", "Destination3") // Add your destination options
+    val destinationData = destinationsViewModel.filteredDestinationData.collectAsState()
+    val destinationsDes = destinationData.value
+    var destinations = mutableListOf<String>()
+    for (D in destinationsDes) {
+        destinations.add(D.name)
+    }
+//    val destinations = listOf("Destination1", "Destination2", "Destination3") // Add your destination options
 
     var selectedDestinations by remember { mutableStateOf(mutableStateListOf("")) }
 
@@ -220,7 +230,7 @@ fun CreateTrip(
                     .fillMaxWidth()
                     .padding(8.dp)
             ) {
-                Text("Add Dropdown")
+                Text("Add Destination")
             }
         }
 
