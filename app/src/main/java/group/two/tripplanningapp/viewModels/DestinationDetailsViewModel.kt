@@ -1,8 +1,6 @@
 package group.two.tripplanningapp.viewModels
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
@@ -14,24 +12,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class DestinationDetailsViewModel(id: String) : ViewModel() {
+class DestinationDetailsViewModel: ViewModel() {
 
     private val _db = Firebase.firestore
 
     private val _storage = Firebase.storage
 
-    private val _destination = MutableLiveData<Destination>(null)
-    val destination: LiveData<Destination?> get() = _destination
+    private val _destination = MutableStateFlow<Destination?>(null)
+    val destination: StateFlow<Destination?> get() = _destination
 
-    init {
-        loadDestinationDetails(id)
-    }
-
-    private fun loadDestinationDetails(id: String) {
-        _db.collection("destinations").document(id).get().addOnSuccessListener {
-            val destination = it.toObject(Destination::class.java)
-            _destination.value = destination
-            Log.d("DestinationsViewModel", "set Destination: $destination")
+    fun loadDestinationDetails(id: String) {
+        viewModelScope.launch {
+            val res = _db.collection("destinations").document(id).get().await()
+            _destination.value = res.toObject(Destination::class.java)
+            Log.d("DestinationDetailsViewModel", "Destination: ${_destination.value}")
         }
     }
 

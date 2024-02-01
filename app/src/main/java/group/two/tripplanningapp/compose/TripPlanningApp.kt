@@ -27,7 +27,7 @@ import group.two.tripplanningapp.compose.settings.SettingsScreen
 import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
-import group.two.tripplanningapp.data.LocaleConstant
+import group.two.tripplanningapp.viewModels.DestinationDetailsViewModel
 import group.two.tripplanningapp.viewModels.ReviewViewModel
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
@@ -38,6 +38,7 @@ fun TripPlanningApp(
     userAuthViewModel: UserAuthViewModel = viewModel(factory = UserAuthViewModel.Factory),
     snackbarViewModel: SnackbarViewModel = viewModel(factory = SnackbarViewModel.Factory),
     reviewViewModel: ReviewViewModel = viewModel(factory = ReviewViewModel.Factory),
+    destinationDetailsViewModel: DestinationDetailsViewModel = DestinationDetailsViewModel()
 ) {
     val navController = rememberNavController()
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
@@ -45,8 +46,6 @@ fun TripPlanningApp(
     val (openAlertDialog, setOpenAlertDialog) = remember { mutableStateOf(false) }
     val (alertDialogMessage, setAlertDialogMessage) = remember { mutableStateOf("") }
     val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
-    val localeConstantsData = userAuthViewModel.localeConstants.collectAsState()
-    val localeConstants = localeConstantsData.value
 
     fun logout() {
         reviewViewModel.clearData()
@@ -113,11 +112,11 @@ fun TripPlanningApp(
                 navController = navController,
                 userAuthViewModel = userAuthViewModel,
                 snackbarViewModel = snackbarViewModel,
+                destinationDetailsViewModel = destinationDetailsViewModel,
                 formatCurrency = userAuthViewModel::formatCurrency,
                 formatTimestamp = userAuthViewModel::formatTimestamp,
                 reviewViewModel = reviewViewModel,
                 showDialog = ::showDialog,
-                localeConstants = localeConstants,
                 loadCurrentUserLocaleConstantCode = userAuthViewModel::loadCurrentUserLocaleConstantCode,
                 logout = { logout() }
             )
@@ -130,11 +129,11 @@ fun TripPlanningNavHost(
     navController: NavHostController,
     userAuthViewModel: UserAuthViewModel,
     snackbarViewModel: SnackbarViewModel,
+    destinationDetailsViewModel: DestinationDetailsViewModel,
     formatCurrency: (Int) -> String,
     formatTimestamp: (Long) -> String,
     reviewViewModel: ReviewViewModel,
     showDialog: (String) -> Unit,
-    localeConstants: List<LocaleConstant>,
     loadCurrentUserLocaleConstantCode: () -> Unit,
     logout: () -> Unit
 ) {
@@ -145,6 +144,9 @@ fun TripPlanningNavHost(
     } else {
         Screen.Login.route
     }
+    val destination = destinationDetailsViewModel.destination.collectAsState()
+    val localeConstantsData = userAuthViewModel.localeConstants.collectAsState()
+    val localeConstants = localeConstantsData.value
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(route = Screen.Login.route) {
@@ -180,7 +182,8 @@ fun TripPlanningNavHost(
                     }
                 },
                 showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
-                showDialog = showDialog
+                showDialog = showDialog,
+                loadLocaleConstants = userAuthViewModel::loadLocaleData,
             )
         }
 
@@ -230,7 +233,9 @@ fun TripPlanningNavHost(
                 reviews = reviewViewModel.curDesReviews.value,
                 getReviewerAvatarAndName = reviewViewModel::getReviewerAvatarAndName,
                 updateReview = reviewViewModel::updateReview,
-                deleteReview = reviewViewModel::deleteReview
+                deleteReview = reviewViewModel::deleteReview,
+                loadDestinationDetails = destinationDetailsViewModel::loadDestinationDetails,
+                destination = destination.value
             )
         }
     }

@@ -1,5 +1,6 @@
 package group.two.tripplanningapp.compose.destinationDetails
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,8 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -22,7 +22,6 @@ import group.two.tripplanningapp.compose.ReviewCard
 import group.two.tripplanningapp.compose.SquaredAsyncImage
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.Review
-import group.two.tripplanningapp.viewModels.DestinationDetailsViewModel
 
 // TODO: fix screen flickering when navigating to this screen
 @Composable
@@ -30,14 +29,21 @@ fun DestinationDetailsScreen(
     formatCurrency: (Int) -> String,
     formatTimestamp: (Long) -> String,
     destinationId: String,
-    destinationDetailsViewModel: DestinationDetailsViewModel = DestinationDetailsViewModel(
-        destinationId
-    ),
     reviews: List<Review>,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, (String) -> Unit) -> Unit
+    deleteReview: (String, (String) -> Unit) -> Unit,
+    loadDestinationDetails: (String) -> Unit,
+    destination: Destination?
 ) {
+    Log.d("DestinationDetailsScreen", "destinationId: $destinationId")
+
+    LaunchedEffect(key1 = destinationId) {
+        loadDestinationDetails(destinationId)
+    }
+
+    Log.d("DestinationDetailsScreen", "destination: $destination")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -48,9 +54,6 @@ fun DestinationDetailsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        val destinationData = destinationDetailsViewModel.destination.observeAsState()
-        val destination = destinationData.value
-
         if (destination == null) {
             Text(text = "Loading...")
         } else {
