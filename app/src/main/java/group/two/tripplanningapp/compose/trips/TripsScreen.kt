@@ -47,7 +47,6 @@ import group.two.tripplanningapp.viewModels.TripsViewModel
 fun TripsScreen(
     navigateToCreate: () -> Unit
 ) {
-    TripsViewModel.fetchTrips()
 
     var trips by remember { mutableStateOf(TripsViewModel.trips) }
 

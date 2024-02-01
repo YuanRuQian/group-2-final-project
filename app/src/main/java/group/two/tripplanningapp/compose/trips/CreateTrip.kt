@@ -165,6 +165,20 @@ fun CreateTrip(
         item {
             Button(
                 onClick = {
+
+                    if (existTrip.tripName != "") {
+                        var inputSelected = mutableListOf<String>()
+                        for (selectedDestination in selectedDestinations) {
+                            inputSelected.add(selectedDestination)
+                        }
+                        inputSelected.add("")
+                        val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
+                        val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
+                        newTripsList[tripIndex] = newTrip
+                        TripsViewModel.trips = newTripsList
+                    }
+
+
                     selectedDestinations.add("") // Add an empty option
                 },
                 modifier = Modifier
@@ -188,7 +202,21 @@ fun CreateTrip(
                 }
             }
             DropdownMenuExample(destinations = des, index = index, selectedOption = selectedDestinations[index]) { newOption ->
+
+                if (existTrip.tripName != "") {
+                    var inputSelected = mutableListOf<String>()
+                    for (selectedDestination in selectedDestinations) {
+                        inputSelected.add(selectedDestination)
+                    }
+                    inputSelected[index] = newOption
+                    val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
+                    val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
+                    newTripsList[tripIndex] = newTrip
+                    TripsViewModel.trips = newTripsList
+                }
+
                 selectedDestinations[index] = newOption
+
             }
         }
 
