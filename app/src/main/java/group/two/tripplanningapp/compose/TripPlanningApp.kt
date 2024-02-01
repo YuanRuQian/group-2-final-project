@@ -26,6 +26,8 @@ import group.two.tripplanningapp.compose.settings.SettingsScreen
 import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
+import group.two.tripplanningapp.viewModels.ProfileViewModel
+import group.two.tripplanningapp.viewModels.ReviewViewModel
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
 import kotlinx.coroutines.launch
@@ -34,6 +36,7 @@ import kotlinx.coroutines.launch
 fun TripPlanningApp(
     userAuthViewModel: UserAuthViewModel = viewModel(factory = UserAuthViewModel.Factory),
     snackbarViewModel: SnackbarViewModel = viewModel(factory = SnackbarViewModel.Factory),
+    reviewViewModel: ReviewViewModel = viewModel(),
 ) {
     val navController = rememberNavController()
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
@@ -103,6 +106,7 @@ fun TripPlanningApp(
                 navController = navController,
                 userAuthViewModel = userAuthViewModel,
                 snackbarViewModel = snackbarViewModel,
+                reviewViewModel = reviewViewModel,
                 showDialog = ::showDialog,
                 logout = { logout() }
             )
@@ -115,6 +119,7 @@ fun TripPlanningNavHost(
     navController: NavHostController,
     userAuthViewModel: UserAuthViewModel,
     snackbarViewModel: SnackbarViewModel,
+    reviewViewModel: ReviewViewModel,
     showDialog: (String) -> Unit,
     logout: () -> Unit
 ) {
@@ -182,6 +187,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Profile.route) {
             ProfileScreen(
+                reviewViewModel = reviewViewModel,
                 showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
                 logout = logout
             )
