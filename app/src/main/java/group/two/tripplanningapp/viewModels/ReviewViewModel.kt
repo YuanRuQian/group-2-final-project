@@ -28,7 +28,6 @@ class ReviewViewModel : ViewModel()  {
     val yourReviews: MutableState<List<Review>> get() = _yourReviews
 
     private val _curDesReviews: MutableState<List<Review>> = mutableStateOf(emptyList())
-    val curDesReviews: MutableState<List<Review>> get() = _curDesReviews
 
     init {
         getUserReviews()
@@ -42,7 +41,6 @@ class ReviewViewModel : ViewModel()  {
             defaultAvatarURL.value = uri.toString()
             Log.d(TAG, "getProfileImage: ${defaultAvatarURL.value}")
         }
-
     }
 
     fun getReviewerAvatarAndName(userID:String, avatar:MutableState<String>, userName:MutableState<String>){
@@ -193,5 +191,10 @@ class ReviewViewModel : ViewModel()  {
             ProfileReviewSortOptions.Location -> _yourReviews.value =yourReviews.value.sortedBy { it.destination }
             ProfileReviewSortOptions.Rating -> _yourReviews.value =yourReviews.value.sortedByDescending { it.rating }
         }
+    }
+
+    fun clearData() {
+        _yourReviews.value = emptyList()
+        _curDesReviews.value = emptyList()
     }
 }

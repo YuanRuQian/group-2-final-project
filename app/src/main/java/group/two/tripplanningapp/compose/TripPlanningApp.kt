@@ -28,7 +28,6 @@ import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
 import group.two.tripplanningapp.data.LocaleConstant
-import group.two.tripplanningapp.viewModels.ProfileViewModel
 import group.two.tripplanningapp.viewModels.ReviewViewModel
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
@@ -54,6 +53,7 @@ fun TripPlanningApp(
     }
 
     fun logout() {
+        reviewViewModel.clearData()
         userAuthViewModel.signOut(
             navigateToLoginScreen = {
                 navController.navigate(Screen.Login.route) {
@@ -91,7 +91,10 @@ fun TripPlanningApp(
         },
         bottomBar = {
             if(isLoggedIn.value == true) {
+                setCurrentRoute(Screen.Home.route)
                 AppBottomBar(navController = navController, currentRoute = currentRoute, setCurrentRoute = setCurrentRoute)
+            } else {
+                setCurrentRoute(Screen.Login.route)
             }
         },
         snackbarHost = {
