@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,14 +21,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,15 +53,15 @@ import group.two.tripplanningapp.viewModels.ProfileViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.compose.ReviewCard
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
-import group.two.tripplanningapp.utilities.formatTimestamp
+import group.two.tripplanningapp.viewModels.ReviewViewModel
 
 @Composable
 fun ProfileScreen(
+    profileViewModel: ProfileViewModel = viewModel(),
+    reviewViewModel: ReviewViewModel,
     showSnackbarMessage: (String) -> Unit,
     logout:()->Unit
 ) {
@@ -78,6 +73,8 @@ fun ProfileScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Profile(
+            profileViewModel = profileViewModel,
+            reviewViewModel = reviewViewModel,
             showSnackbarMessage = showSnackbarMessage,
             logout = logout
         )
@@ -88,13 +85,14 @@ fun ProfileScreen(
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Profile(
-    profileViewModel: ProfileViewModel = viewModel(),
+    profileViewModel: ProfileViewModel,
+    reviewViewModel: ReviewViewModel,
     showSnackbarMessage: (String) -> Unit,
     logout: () -> Unit
 ) {
     val profilePicLink by profileViewModel.profileImageUrl
     val userName by profileViewModel.displayName
-    val userReviews by profileViewModel.reviews
+    val userReviews by reviewViewModel.yourReviews
 
 
     var isNameEditing by remember { mutableStateOf(false) }
@@ -159,7 +157,9 @@ fun Profile(
                 contentPadding = PaddingValues(4.dp),
                 shape = MaterialTheme.shapes.medium,
                 colors = ButtonDefaults.buttonColors(Color.Red),
-                modifier = Modifier.align(Alignment.TopEnd).heightIn(20.dp)
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .heightIn(20.dp)
             ) {
                 Text(
                     "Delete Account",
@@ -179,7 +179,11 @@ fun Profile(
                     confirmButton = {
                         Button(
                             onClick = {
-                                profileViewModel.deleteAccount(showSnackbarMessage, logout = logout)
+                                profileViewModel.deleteAccount(
+                                    reviewViewModel = reviewViewModel,
+                                    showSnackbarMessage = showSnackbarMessage,
+                                    logout = logout
+                                )
                                 deleteAccountClicked = false
                             },
                             colors = ButtonDefaults.buttonColors(Color.Red)
@@ -288,7 +292,7 @@ fun Profile(
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Date,
                 onToggle = {
                     selectedSortOption = ProfileReviewSortOptions.Date
-                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Date)
+                    reviewViewModel.profileSortReviews(ProfileReviewSortOptions.Date)
                 }
             )
             ToggleButton(
@@ -296,7 +300,7 @@ fun Profile(
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Location,
                 onToggle = {
                     selectedSortOption = ProfileReviewSortOptions.Location
-                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Location)
+                    reviewViewModel.profileSortReviews(ProfileReviewSortOptions.Location)
                 }
             )
             ToggleButton(
@@ -304,7 +308,7 @@ fun Profile(
                 isSelected = selectedSortOption == ProfileReviewSortOptions.Rating,
                 onToggle = {
                     selectedSortOption = ProfileReviewSortOptions.Rating
-                    profileViewModel.profileSortReviews(ProfileReviewSortOptions.Rating)
+                    reviewViewModel.profileSortReviews(ProfileReviewSortOptions.Rating)
                 }
             )
         }
@@ -312,17 +316,20 @@ fun Profile(
         // Reviews
         LazyColumn {
             items(userReviews) { review ->
-                    ReviewItem(
-                        profileViewModel = profileViewModel,
+                    ReviewCard(
+                        reviewViewModel = reviewViewModel,
                         review = review,
-                        showSnackbarMessage = showSnackbarMessage
+                        showSnackbarMessage = showSnackbarMessage,
+                        showReviewCreator = true
                     )
             }
             if (userReviews.isEmpty()){
                 item{
                     Text(
                         text = "No Reviews Found",
-                        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 24.dp),
                         textAlign = TextAlign.Center,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -357,149 +364,6 @@ fun ToggleButton(text: String, isSelected: Boolean, onToggle: () -> Unit) {
     }
 }
 
-@Composable
-fun ReviewItem(profileViewModel: ProfileViewModel, review: Review, showSnackbarMessage: (String) -> Unit) {
-    var isEditing by remember { mutableStateOf(false) }
-    var editedContent by remember { mutableStateOf(review.content) }
-    val fontSize = 14.sp
-    var saveClicked by remember { mutableStateOf(false) }
-    var deleteClicked by remember { mutableStateOf(false) }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(6.dp),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = review.destination,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "Rating: ${review.rating}",
-                fontSize = 14.sp
-            )
-            Text(
-                text = "Time: ${review.timestamp?.let { formatTimestamp(it) }}",
-                fontSize = 14.sp,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-
-            // Editable content text field (visible only when editing)
-            if (isEditing) {
-                TextField(
-                    value = editedContent,
-                    onValueChange = {
-                        editedContent = it
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Done,
-                        keyboardType = KeyboardType.Text
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    textStyle = TextStyle(
-                        fontSize = fontSize,
-                        color = Color.Black
-                    ),
-                )
-            } else {
-                // Display content text
-                Text(
-                    text = editedContent,
-                    fontSize = fontSize
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                // Toggle between edit and save icon based on editing state
-                IconButton(onClick = {
-                    if (isEditing) {
-                        // Update Content
-                        saveClicked = true
-                    } else {
-                        // Handle edit action
-                        isEditing = true
-                    }
-                }) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Save else Icons.Default.Edit,
-                        contentDescription = if (isEditing) "Save Review" else "Edit Review"
-                    )
-                }
-
-                IconButton(onClick = {if (isEditing) isEditing=false else deleteClicked=true}) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Cancel else Icons.Default.Delete,
-                        contentDescription = if (isEditing) "Cancel Editing" else "Delete Review"
-                    )
-                }
-            }
-        }
-    }
-
-    if (saveClicked||deleteClicked){
-        AlertDialog(
-            onDismissRequest = {
-                // Handle dismiss if needed
-                saveClicked = false
-                deleteClicked = false
-            },
-            title = {
-                Text("Confirm ${if (saveClicked) "Edit" else "Delete"}")
-            },
-            text = {
-                Text("Are you sure you want to ${if (saveClicked) "edit" else "delete"} this review?")
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (saveClicked){
-                            profileViewModel.updateReview(
-                                reviewId = review.reviewId,
-                                newContent = editedContent,
-                                showSnackbarMessage = showSnackbarMessage
-                            )
-                            saveClicked = false
-                            isEditing = false
-                        }
-                        else if (deleteClicked){
-                            profileViewModel.deleteReview(
-                                reviewId = review.reviewId,
-                                showSnackbarMessage = showSnackbarMessage
-                            )
-                            deleteClicked = false
-                        }
-                    },
-                    colors = if (saveClicked) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary) else ButtonDefaults.buttonColors(Color.Red)
-                ) {
-                    Text("Yes")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = {
-                        saveClicked = false
-                        deleteClicked = false
-                    }
-                ) {
-                    Text("No")
-                }
-            }
-        )
-    }
-
-}
 
 

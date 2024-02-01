@@ -11,5 +11,10 @@ data class Review(
     val destination: String = "",
     val rating: Int = 0,
     @ServerTimestamp
-    val timestamp: Timestamp? = null
+    val timeCreated: Timestamp? = null,
+    @ServerTimestamp
+    val timeEdited: Timestamp? = null,
+    var editable: Boolean = false,
+    var creatorName:String="", // For Destination Reviews
+    var reviewerAvatarURL:String = "" // For Destination Reviews
 )
