@@ -1,5 +1,6 @@
 package group.two.tripplanningapp.compose.trips
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -51,10 +52,10 @@ import group.two.tripplanningapp.viewModels.DestinationsViewModel
 @Composable
 fun CreateTrip(
     navigateToTripsScreen: () -> Unit,
-    destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
+    destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory)
 ) {
     var tripName by remember { mutableStateOf("") }
-    var numberOfPeople by remember { mutableStateOf(1) }
+    var numberOfPeople by remember { mutableStateOf(0) }
     var privacy by remember { mutableStateOf(Privacy.Private) }
     val destinationData = destinationsViewModel.filteredDestinationData.collectAsState()
     val destinationsDes = destinationData.value
@@ -65,6 +66,40 @@ fun CreateTrip(
 //    val destinations = listOf("Destination1", "Destination2", "Destination3") // Add your destination options
 
     var selectedDestinations by remember { mutableStateOf(mutableStateListOf("")) }
+//    var selectedDestinations by remember { mutableStateOf(mutableListOf("")) }
+
+    var existTrip = Trip("", 0, Privacy.Private, mutableListOf<String>())
+
+    if (TripsViewModel.clickIndex != -1) {
+        existTrip = TripsViewModel.trips[TripsViewModel.clickIndex]
+//        Log.d("existTrip", existTrip.destinations.toString())
+    }
+
+
+
+    var tripIndex = 0
+    if (existTrip.tripName != "") {
+        for (i in 0 .. TripsViewModel.trips.size - 1) {
+            if (existTrip.tripName == TripsViewModel.trips[i].tripName) {
+                tripIndex = i
+                tripName = existTrip.tripName
+                numberOfPeople = existTrip.numberOfPeople
+                privacy = existTrip.privacy
+                while(!selectedDestinations.isEmpty()){
+                    selectedDestinations.removeAt(0)
+                }
+                for (dd in existTrip.destinations) {
+                    selectedDestinations.add(dd)
+                }
+                break
+            }
+        }
+    }
+
+
+
+
+
 
     LazyColumn(
         modifier = Modifier
@@ -75,7 +110,13 @@ fun CreateTrip(
             // UI for capturing trip details
             TextField(
                 value = tripName,
-                onValueChange = { tripName = it },
+                onValueChange = {
+                    tripName = it
+                    if (TripsViewModel.clickIndex!=-1)
+                    {var arr = TripsViewModel.trips.toMutableList()
+                    arr[TripsViewModel.clickIndex].tripName = tripName
+                    TripsViewModel.trips = arr}
+                                },
                 label = { Text("Trip Name") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -84,7 +125,13 @@ fun CreateTrip(
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = numberOfPeople.toString(),
-                onValueChange = { numberOfPeople = it.toIntOrNull() ?: 1 },
+                onValueChange = {
+                    numberOfPeople = it.toIntOrNull() ?: 1
+                    if (TripsViewModel.clickIndex!=-1)
+                    {var arr = TripsViewModel.trips.toMutableList()
+                    arr[TripsViewModel.clickIndex].numberOfPeople = numberOfPeople
+                    TripsViewModel.trips = arr}
+                                },
                 label = { Text("Number of People") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -103,6 +150,10 @@ fun CreateTrip(
                     checked = privacy == Privacy.Private,
                     onCheckedChange = { isChecked ->
                         privacy = if (isChecked) Privacy.Private else Privacy.Public
+                        if (TripsViewModel.clickIndex!=-1)
+                        {var arr = TripsViewModel.trips.toMutableList()
+                        arr[TripsViewModel.clickIndex].privacy = privacy
+                        TripsViewModel.trips = arr}
                     }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -161,17 +212,32 @@ fun CreateTrip(
             // Confirm button to add the trip to TripsScreen
             Button(
                 onClick = {
-                    var inputSelected = mutableListOf<String>()
-                    for (selectedDestination in selectedDestinations) {
-                        inputSelected.add(selectedDestination)
+                    if (existTrip.tripName == "") {
+                        var inputSelected = mutableListOf<String>()
+                        for (selectedDestination in selectedDestinations) {
+                            inputSelected.add(selectedDestination)
+                        }
+                        val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
+                        // Add the new trip to the TripsScreen's list
+                        val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
+                        newTripsList.add(newTrip)
+                        TripsViewModel.trips = newTripsList
+                        // Navigate back to TripsScreen
+                        navigateToTripsScreen()
                     }
-                    val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
-                    // Add the new trip to the TripsScreen's list
-                    val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
-                    newTripsList.add(newTrip)
-                    TripsViewModel.trips = newTripsList
-                    // Navigate back to TripsScreen
-                    navigateToTripsScreen()
+                    else {
+                        var inputSelected = mutableListOf<String>()
+                        for (selectedDestination in selectedDestinations) {
+                            inputSelected.add(selectedDestination)
+                        }
+                        val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
+                        val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
+                        newTripsList[tripIndex] = newTrip
+                        TripsViewModel.trips = newTripsList
+                        navigateToTripsScreen()
+
+                    }
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()

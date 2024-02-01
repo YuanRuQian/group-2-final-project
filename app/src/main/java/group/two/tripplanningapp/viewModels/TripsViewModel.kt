@@ -39,6 +39,8 @@ class TripsViewModel : ViewModel() {
     companion object {
         var trips = emptyList<Trip>()
 
+        var clickIndex = -1
+
         fun fetchTrips() {
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()

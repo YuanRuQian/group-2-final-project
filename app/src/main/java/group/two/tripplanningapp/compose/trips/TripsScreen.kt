@@ -1,6 +1,7 @@
 package group.two.tripplanningapp.compose.trips
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -86,7 +87,7 @@ fun TripsScreen(
 //                    }
 //                }
                 itemsIndexed(trips) { index, trip ->
-                    TripCard(index = index) {
+                    TripCard(index = index, navigateToCreate = navigateToCreate) {
                         // Remove the trip when close button is clicked
                         TripsViewModel.trips = TripsViewModel.trips.filterIndexed { i, _ -> i != index }
                         trips = trips.filterIndexed { i, _ -> i != index }
@@ -98,6 +99,7 @@ fun TripsScreen(
         FloatingActionButton(
             onClick = {
                 // Navigate to another screen when FAB is clicked
+                TripsViewModel.clickIndex = -1
                  navigateToCreate()
             },
             shape = CircleShape,
@@ -126,7 +128,7 @@ enum class Privacy {
 
 
 @Composable
-fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory), onCloseClick: () -> Unit) {
+fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory), navigateToCreate: () -> Unit, onCloseClick: () -> Unit) {
 
     var trip by remember { mutableStateOf(Trip("",0,Privacy.Private,listOf())) }
 
@@ -152,13 +154,20 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable {
+            // Handle item click
+                TripsViewModel.clickIndex = index
+                navigateToCreate()
+            },
         shape = MaterialTheme.shapes.medium
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
         ) {
+
+
 
             Row(
                 modifier = Modifier
