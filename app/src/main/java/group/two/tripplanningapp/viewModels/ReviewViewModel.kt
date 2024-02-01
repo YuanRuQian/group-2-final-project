@@ -7,7 +7,10 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.data.UserProfile
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
 
 class ReviewViewModel : ViewModel()  {
@@ -16,6 +19,8 @@ class ReviewViewModel : ViewModel()  {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val user = auth.currentUser
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val storage: FirebaseStorage = FirebaseStorage.getInstance()
+    private val defaultAvatarURL = mutableStateOf("")
 
     private val yourReviewIds : MutableState<List<String>> = mutableStateOf(emptyList())
 
@@ -27,6 +32,32 @@ class ReviewViewModel : ViewModel()  {
 
     init {
         getUserReviews()
+        getDefaultAvatar()
+    }
+
+    private fun getDefaultAvatar(){
+        val defaultAvatarUri = "/images/userProfiles/avatar_default.webp"
+        val imageRef: StorageReference = storage.reference.child(defaultAvatarUri)
+        imageRef.downloadUrl.addOnSuccessListener{uri ->
+            defaultAvatarURL.value = uri.toString()
+            Log.d(TAG, "getProfileImage: ${defaultAvatarURL.value}")
+        }
+
+    }
+
+    fun getReviewerAvatarAndName(userID:String, avatar:MutableState<String>, userName:MutableState<String>){
+        val userDocumentRef = firestore.collection("userProfiles").document(userID)
+        userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
+            val user = documentSnapshot.toObject(UserProfile::class.java)
+            user?.let {
+
+                Log.d("TripApppDebug", "it.avatar: ${it.avatar}")
+                avatar.value = if (it.avatar!="null") it.avatar else defaultAvatarURL.value
+                 userName.value = if (it.userName!="null") it.userName else "Unknown User"
+            }
+        }.addOnFailureListener { exception ->
+            Log.e(TAG, "Error Avatar And Name for user $userID: $exception")
+        }
     }
 
     // User Reviews
@@ -48,6 +79,9 @@ class ReviewViewModel : ViewModel()  {
             // Step 2: fetch reviews from the List of IDs
             fetchReviews(yourReviewIds.value, _yourReviews)
         }
+    }
+    fun clearDestinationReviews(){
+        _curDesReviews.value = emptyList()
     }
     fun getDestinationReviews(destinationID:String){
         // Get Review IDs

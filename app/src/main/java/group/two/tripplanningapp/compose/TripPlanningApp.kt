@@ -28,6 +28,8 @@ import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
 import group.two.tripplanningapp.data.LocaleConstant
+import group.two.tripplanningapp.viewModels.ProfileViewModel
+import group.two.tripplanningapp.viewModels.ReviewViewModel
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
 import kotlinx.coroutines.launch
@@ -36,6 +38,7 @@ import kotlinx.coroutines.launch
 fun TripPlanningApp(
     userAuthViewModel: UserAuthViewModel = viewModel(factory = UserAuthViewModel.Factory),
     snackbarViewModel: SnackbarViewModel = viewModel(factory = SnackbarViewModel.Factory),
+    reviewViewModel: ReviewViewModel = viewModel(),
 ) {
     val navController = rememberNavController()
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
@@ -113,6 +116,7 @@ fun TripPlanningApp(
                 snackbarViewModel = snackbarViewModel,
                 formatCurrency = userAuthViewModel::formatCurrency,
                 formatTimestamp = userAuthViewModel::formatTimestamp,
+                reviewViewModel = reviewViewModel,
                 showDialog = ::showDialog,
                 localeConstants = localeConstants,
                 loadCurrentUserLocaleConstantCode = userAuthViewModel::loadCurrentUserLocaleConstantCode,
@@ -129,6 +133,7 @@ fun TripPlanningNavHost(
     snackbarViewModel: SnackbarViewModel,
     formatCurrency: (Int) -> String,
     formatTimestamp: (Long) -> String,
+    reviewViewModel: ReviewViewModel,
     showDialog: (String) -> Unit,
     localeConstants: List<LocaleConstant>,
     loadCurrentUserLocaleConstantCode: () -> Unit,
@@ -200,6 +205,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Profile.route) {
             ProfileScreen(
+                reviewViewModel = reviewViewModel,
                 showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
                 logout = logout
             )
