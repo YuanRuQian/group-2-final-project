@@ -11,6 +11,17 @@ class SettingsViewModel : ViewModel() {
     val successMessage = MutableLiveData<String?>()
     val errorMessage = MutableLiveData<String?>()
 
+    fun updateCurrency(userId: String, newCurrency: String) {
+        db.collection("users")
+            .document(userId)
+            .update("currency", newCurrency)
+            .addOnSuccessListener {
+                successMessage.postValue("Currency updated successfully")
+            }
+            .addOnFailureListener { e ->
+                errorMessage.postValue("Error updating currency: ${e.message}")
+            }
+    }
     fun submitFeedback(content: String, rating: Int) {
         val feedback = hashMapOf(
             "content" to content,
