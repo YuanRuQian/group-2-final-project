@@ -9,6 +9,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +27,7 @@ import group.two.tripplanningapp.compose.settings.SettingsScreen
 import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
+import group.two.tripplanningapp.data.LocaleConstant
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
 import kotlinx.coroutines.launch
@@ -41,6 +43,12 @@ fun TripPlanningApp(
     val (openAlertDialog, setOpenAlertDialog) = remember { mutableStateOf(false) }
     val (alertDialogMessage, setAlertDialogMessage) = remember { mutableStateOf("") }
     val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
+    val localeConstantsData = userAuthViewModel.localeConstants.collectAsState()
+    val localeConstants = localeConstantsData.value
+
+    LaunchedEffect(key1 = true) {
+        userAuthViewModel.loadLocaleData()
+    }
 
     fun logout() {
         userAuthViewModel.signOut(
@@ -103,7 +111,11 @@ fun TripPlanningApp(
                 navController = navController,
                 userAuthViewModel = userAuthViewModel,
                 snackbarViewModel = snackbarViewModel,
+                formatCurrency = userAuthViewModel::formatCurrency,
+                formatTimestamp = userAuthViewModel::formatTimestamp,
                 showDialog = ::showDialog,
+                localeConstants = localeConstants,
+                loadCurrentUserLocaleConstantCode = userAuthViewModel::loadCurrentUserLocaleConstantCode,
                 logout = { logout() }
             )
         }
@@ -115,7 +127,11 @@ fun TripPlanningNavHost(
     navController: NavHostController,
     userAuthViewModel: UserAuthViewModel,
     snackbarViewModel: SnackbarViewModel,
+    formatCurrency: (Int) -> String,
+    formatTimestamp: (Long) -> String,
     showDialog: (String) -> Unit,
+    localeConstants: List<LocaleConstant>,
+    loadCurrentUserLocaleConstantCode: () -> Unit,
     logout: () -> Unit
 ) {
 
@@ -147,6 +163,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Register.route) {
             RegisterScreen(
+                localeConstants = localeConstants,
                 signup = userAuthViewModel::signUp,
                 navigateToLoginScreen = {
                     navController.navigate(Screen.Login.route)
@@ -165,6 +182,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Home.route) {
             HomeScreen(
+                loadCurrentUserLocaleConstantCode = loadCurrentUserLocaleConstantCode,
                 onDestinationClick = {
                     navController.navigate(
                         Screen.DestinationDetails.createRoute(
@@ -197,6 +215,8 @@ fun TripPlanningNavHost(
             arguments = Screen.DestinationDetails.navArguments,
         ) {
             DestinationDetailsScreen(
+                formatCurrency = formatCurrency,
+                formatTimestamp = formatTimestamp,
                 destinationId = it.arguments?.getString("destinationId") ?: ""
             )
         }

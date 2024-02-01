@@ -12,6 +12,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.firestore
+import group.two.tripplanningapp.data.LocaleConstant
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class UserAuthViewModel : ViewModel() {
 
@@ -23,12 +30,60 @@ class UserAuthViewModel : ViewModel() {
     private val _isUserLoggedIn: MutableLiveData<Boolean> = MutableLiveData()
     val isUserLoggedIn: LiveData<Boolean> = _isUserLoggedIn
 
+    private var _localeConstants = MutableStateFlow<List<LocaleConstant>>(emptyList())
+    val localeConstants: StateFlow<List<LocaleConstant>> get() = _localeConstants
+    private var currentUserLocaleConstant: LocaleConstant? = null
+
     init {
         _userLiveData.value = auth.currentUser
         _isUserLoggedIn.value = auth.currentUser != null
+        loadLocaleData()
+        if (auth.currentUser != null) {
+            loadCurrentUserLocaleConstantCode()
+        }
     }
 
-    fun signUp(email: String, password: String, username: String, localeAreaCode: String, navigateToHomeScreen: () -> Unit, showSnackbarMessage: (String) -> Unit, showDialog: (String) -> Unit) {
+    fun loadLocaleData() {
+        val localeConstants = mutableListOf<LocaleConstant>()
+        db.collection("localeConstants").get().addOnSuccessListener { result ->
+            for (document in result) {
+                val localeConstant = document.toObject(LocaleConstant::class.java)
+                localeConstants.add(localeConstant)
+            }
+            _localeConstants.value = localeConstants
+        }.addOnFailureListener { exception ->
+            Log.w("LocaleViewModel", "Error getting documents.", exception)
+        }
+    }
+
+    fun loadCurrentUserLocaleConstantCode() {
+        val currentUserId = auth.currentUser?.uid ?: ""
+        db.collection("userProfiles").document(currentUserId).get().addOnSuccessListener { documentSnapshot ->
+            val currentUserLocaleConstantCode = documentSnapshot.getString("localeConstantCode") ?: "en-US"
+            currentUserLocaleConstant = _localeConstants.value.find { it.code == currentUserLocaleConstantCode }
+            Log.d("LocaleViewModel", "Current user locale constant code: $currentUserLocaleConstantCode")
+            Log.d("LocaleViewModel", "Current user locale constant: $currentUserLocaleConstant")
+        }
+    }
+
+    fun formatCurrency(priceInUSDCents: Int): String {
+        val locale = Locale.forLanguageTag(currentUserLocaleConstant?.code ?: "en-US")
+        val priceInUSD = priceInUSDCents / 100.0
+        val usdConversionRate = currentUserLocaleConstant?.usdConversionRate ?: 1.0
+        val priceInLocalCurrency = priceInUSD * usdConversionRate
+        val currencyFormat = NumberFormat.getCurrencyInstance(locale)
+        return currencyFormat.format(priceInLocalCurrency)
+    }
+
+    fun formatTimestamp(datetime: Long): String {
+        val locale = Locale.forLanguageTag(currentUserLocaleConstant?.code ?: "en-US")
+        val date = Date(datetime)
+        val dateFormatter = SimpleDateFormat.getDateInstance(SimpleDateFormat.MEDIUM, locale)
+        val timeFormatter = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, locale)
+        return "${dateFormatter.format(date)} ${timeFormatter.format(date)}"
+    }
+
+    fun signUp(email: String, password: String, username: String, localeConstant: LocaleConstant, navigateToHomeScreen: () -> Unit, showSnackbarMessage: (String) -> Unit, showDialog: (String) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -42,7 +97,7 @@ class UserAuthViewModel : ViewModel() {
                             if (profileUpdateTask.isSuccessful) {
                                 // Add user details to Firestore
                                 val user = hashMapOf(
-                                    "localeAreaCode" to localeAreaCode
+                                    "localeConstantCode" to localeConstant.code
                                     // TODO: Add more user details as needed
                                 )
 

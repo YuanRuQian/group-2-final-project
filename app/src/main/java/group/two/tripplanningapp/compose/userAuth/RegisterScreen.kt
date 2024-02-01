@@ -39,13 +39,14 @@ import androidx.compose.ui.text.input.KeyboardType.Companion.Password
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import group.two.tripplanningapp.utilities.Region
+import group.two.tripplanningapp.data.LocaleConstant
 import group.two.tripplanningapp.utilities.isEmailValid
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RegisterScreen(
-    signup: (String, String, String, String, () -> Unit, (String) -> Unit, (String) -> Unit) -> Unit,
+    localeConstants: List<LocaleConstant>,
+    signup: (String, String, String, LocaleConstant, () -> Unit, (String) -> Unit, (String) -> Unit) -> Unit,
     navigateToLoginScreen: () -> Unit,
     navigateToHomeScreen: () -> Unit,
     showSnackbarMessage: (String) -> Unit,
@@ -59,7 +60,7 @@ fun RegisterScreen(
     val (isRegisterButtonEnabled, setIsRegisterButtonEnabled) = remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     // TODO: use GPS to get the user's region as default
-    val (selectedRegion, setSelectedRegion) = remember { mutableStateOf(Region.UNITED_STATES) }
+    val (selectedLocaleConstant, setSelectedLocaleConstant) = remember { mutableStateOf(if(localeConstants.isNotEmpty())localeConstants[0] else LocaleConstant()) }
     val (expanded, setExpanded) = remember { mutableStateOf(false) }
 
     fun updateRegisterButtonState() {
@@ -152,13 +153,15 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.padding(16.dp))
 
-        RegionDropdownMenu(expanded, setExpanded, selectedRegion, setSelectedRegion)
+        LocaleDropdown(
+            localeConstants,
+            expanded, setExpanded, selectedLocaleConstant, setSelectedLocaleConstant)
 
         Spacer(modifier = Modifier.padding(32.dp))
 
         Button(
             onClick = {
-                signup(email, password, username, selectedRegion.currencyCode, navigateToHomeScreen, showSnackbarMessage, showDialog)
+                signup(email, password, username, selectedLocaleConstant, navigateToHomeScreen, showSnackbarMessage, showDialog)
                 keyboardController?.hide()
             },
             enabled = isRegisterButtonEnabled,
@@ -182,17 +185,18 @@ fun RegisterScreen(
 // TODO: need future improvement for locale area code data and other stuff...
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegionDropdownMenu(
+fun LocaleDropdown(
+    localeConstants: List<LocaleConstant>,
     expanded: Boolean,
     setExpanded: (Boolean) -> Unit,
-    selectedRegion: Region,
-    setSelectedRegion: (Region) -> Unit
+    selectedLocaleConstant: LocaleConstant,
+    setSelectedLocaleConstant: (LocaleConstant) -> Unit
 ) {
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { setExpanded(it) }) {
         CompositionLocalProvider(LocalTextInputService provides null) {
             TextField(
                 readOnly = true,
-                value = selectedRegion.region,
+                value = selectedLocaleConstant.displayName,
                 onValueChange = {},
                 label = { Text("Region") },
                 trailingIcon = {
@@ -209,11 +213,11 @@ fun RegionDropdownMenu(
             expanded = expanded,
             onDismissRequest = { setExpanded(false) },
         ) {
-            Region.entries.forEach { region ->
+            localeConstants.forEach { localeConstant ->
                 DropdownMenuItem(text = {
-                    Text(text = region.region)
+                    Text(text = localeConstant.displayName)
                 }, onClick = {
-                    setSelectedRegion(region)
+                    setSelectedLocaleConstant(localeConstant)
                     setExpanded(false)
                 })
             }
