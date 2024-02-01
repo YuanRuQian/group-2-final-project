@@ -26,6 +26,7 @@ import group.two.tripplanningapp.compose.settings.SettingsScreen
 import group.two.tripplanningapp.compose.trips.TripsScreen
 import group.two.tripplanningapp.compose.userAuth.LoginScreen
 import group.two.tripplanningapp.compose.userAuth.RegisterScreen
+import group.two.tripplanningapp.data.LocaleConstant
 import group.two.tripplanningapp.viewModels.SnackbarViewModel
 import group.two.tripplanningapp.viewModels.UserAuthViewModel
 import kotlinx.coroutines.launch
@@ -41,6 +42,13 @@ fun TripPlanningApp(
     val (openAlertDialog, setOpenAlertDialog) = remember { mutableStateOf(false) }
     val (alertDialogMessage, setAlertDialogMessage) = remember { mutableStateOf("") }
     val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
+    val localeConstants = listOf(
+        LocaleConstant("USD", "United States", 1.0),
+        LocaleConstant("EUR", "European Union", 0.85),
+        LocaleConstant("JPY", "Japan", 110.25),
+        LocaleConstant("AUD", "Australia", 1.35),
+        LocaleConstant("KRW", "Korea", 1185.50)
+    )
 
     fun logout() {
         userAuthViewModel.signOut(
@@ -103,6 +111,7 @@ fun TripPlanningApp(
                 navController = navController,
                 userAuthViewModel = userAuthViewModel,
                 snackbarViewModel = snackbarViewModel,
+                localeConstants = localeConstants,
                 showDialog = ::showDialog,
                 logout = { logout() }
             )
@@ -115,6 +124,7 @@ fun TripPlanningNavHost(
     navController: NavHostController,
     userAuthViewModel: UserAuthViewModel,
     snackbarViewModel: SnackbarViewModel,
+    localeConstants: List<LocaleConstant>,
     showDialog: (String) -> Unit,
     logout: () -> Unit
 ) {
@@ -189,6 +199,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.Settings.route) {
             SettingsScreen(
+                localeConstants = localeConstants,
             )
         }
 
