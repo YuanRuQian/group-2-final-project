@@ -98,6 +98,7 @@ class UserAuthViewModel : ViewModel() {
                                 // Add user details to Firestore
                                 val user = hashMapOf(
                                     "localeConstantCode" to localeConstant.code
+                                    "userName" to username
                                     // TODO: Add more user details as needed
                                 )
 
