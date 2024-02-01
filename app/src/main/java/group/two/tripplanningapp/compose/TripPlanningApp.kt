@@ -215,6 +215,7 @@ fun TripPlanningNavHost(
         composable(route = Screen.Settings.route) {
             SettingsScreen(
                 localeConstants = localeConstants,
+                showSnackbarMessage = snackbarViewModel::showSnackbarMessage
             )
         }
 
