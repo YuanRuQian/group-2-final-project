@@ -1,6 +1,7 @@
 package group.two.tripplanningapp.compose.settings
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -10,14 +11,19 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import group.two.tripplanningapp.utilities.Region
 import group.two.tripplanningapp.viewModels.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
+    val (selectedRegion, setSelectedRegion) = remember { mutableStateOf(Region.UNITED_STATES) }
+    val (expanded, setExpanded) = remember { mutableStateOf(false) }
+
     var feedbackText by remember { mutableStateOf("") }
     var rating by remember { mutableStateOf(0) }
     var isSubmitting by remember { mutableStateOf(false) }
@@ -41,6 +47,10 @@ fun SettingsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Choose Currency")
+        CurrencyDropdownMenu(expanded, setExpanded, selectedRegion, setSelectedRegion)
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text("Your Feedback")
         Spacer(modifier = Modifier.height(16.dp))
@@ -66,6 +76,47 @@ fun SettingsScreen(
             enabled = !isSubmitting
         ) {
             Text("Submit Feedback")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CurrencyDropdownMenu(
+    expanded: Boolean,
+    setExpanded: (Boolean) -> Unit,
+    selectedRegion: Region,
+    setSelectedRegion: (Region) -> Unit
+) {
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { setExpanded(it) }) {
+        CompositionLocalProvider(LocalTextInputService provides null) {
+            TextField(
+                readOnly = true,
+                value = selectedRegion.currencyCode,
+                onValueChange = {},
+                label = { Text("Currency") },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expanded
+                    )
+                },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                modifier = Modifier.menuAnchor()
+            )
+        }
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { setExpanded(false) },
+        ) {
+            Region.entries.forEach { region ->
+                DropdownMenuItem(text = {
+                    Text(text = region.currencyCode)
+                }, onClick = {
+                    setSelectedRegion(region)
+                    setExpanded(false)
+                })
+            }
         }
     }
 }
