@@ -57,7 +57,8 @@ import group.two.tripplanningapp.viewModels.DestinationsViewModel
 @Composable
 fun CreateTrip(
     navigateToTripsScreen: () -> Unit,
-    destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory)
+    destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
+    tripsViewModel: TripsViewModel = TripsViewModel()
 ) {
     var tripName by remember { mutableStateOf("") }
     var numberOfPeople by remember { mutableStateOf(0) }

@@ -39,6 +39,8 @@ class TripsViewModel : ViewModel() {
 
         var clickIndex = -1
 
+        var tripToken = ""
+
 
 
         // Your logic to fetch trips from Firebase
@@ -53,24 +55,90 @@ class TripsViewModel : ViewModel() {
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
             val user = auth.currentUser
+
+            Log.d("Jerry Id is??", user!!.uid)
+
             // Use Firebase API to fetch trips data
             // Replace the following code with your actual Firebase logic
-            val firebaseTripIds = firestore.collection("userProfiles").document(user?.uid ?: "").collection("trip").get().await()
-            var tripStrings = mutableListOf<String>()
-            for (document in firebaseTripIds) {
-                val tripOneId = document.toObject(TripId::class.java)
-                tripStrings.add(tripOneId.id)
+//            val firebaseTripIds = firestore.collection("userProfiles").document(user?.uid ?: "").collection("trip").get().await()
+//            var tripStrings = mutableListOf<String>()
+//            for (document in firebaseTripIds) {
+//                val tripOneId = document.toObject(TripId::class.java)
+//                tripStrings.add(tripOneId.id)
+//            }
+//            for (everyId in tripStrings) {
+//                val firebaseTrips = firestore.collection("trips").document(everyId).get().await()
+//                //toObject get fields
+//            //destination names another toObject
+//
+////                var tripName = firebaseTrips.get
+//
+//
+//
+//            }
+
+            val documentReference = firestore.collection("userProfiles").document(user?.uid ?: "")
+
+            val dSnapshot = documentReference.get().await()
+
+            if(!dSnapshot.contains("trips")) {
+                documentReference.update("trips", user?.uid).await()
             }
-            for (everyId in tripStrings) {
-                val firebaseTrips = firestore.collection("trips").document(everyId).get().await()
-                //toObject get fields
-            //destination names another toObject
-
-//                var tripName = firebaseTrips.get
 
 
 
+            val tripIdData = documentReference.get().await()
+            var tripId = tripIdData.getString("trips")
+
+            Log.d("Jerry tripId", tripId!!)
+
+            val collectionReference = firestore.collection("trips")
+
+            // 查询是否已存在相同的元素
+            val querySnapshot = collectionReference.get().await()
+
+            // 检查每个文档是否存在相同的字段名
+            var haveOrNot =  querySnapshot.documents.any { document -> document.id == tripId }
+
+            Log.d("Jerry haveOrNot", haveOrNot.toString())
+
+            var mapTrips = mutableMapOf<String, Trip>()
+
+//            for (index in 0 .. TripsViewModel.trips.size - 1) {
+//                mapTrips.put("$index", TripsViewModel.trips[index])
+//            }
+
+//            var map = mapOf( tripId!! to  mapTrips)
+            var map = mutableMapOf<String, Trip>()
+
+
+
+            // 如果集合中不存在相同的元素，则添加新元素
+            if (!haveOrNot) {
+                var tripToken = ""
+                tripToken = collectionReference.add(map).await().id
+                documentReference.update("trips", tripToken).await()
+                tripId = tripToken
             }
+
+            TripsViewModel.tripToken = tripId
+
+            
+
+
+
+
+//            val documentSnapshot = collectionReference.document(tripId).get().await()
+//
+//            var tripMap = documentSnapshot.data?: emptyMap()
+//
+//            var tempTrips = mutableListOf<Trip>()
+//            for (i in 0 .. tripMap.size - 1) {
+//                tempTrips.add(tripMap.get("$i") as Trip)
+//            }
+//            TripsViewModel.trips = tempTrips
+
+            Log.d("Jerry TripsViewModel.trips", TripsViewModel.trips.toString())
 
 
         }

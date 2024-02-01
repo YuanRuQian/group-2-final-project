@@ -45,7 +45,8 @@ import group.two.tripplanningapp.viewModels.TripsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripsScreen(
-    navigateToCreate: () -> Unit
+    navigateToCreate: () -> Unit,
+    tripsViewModel: TripsViewModel = TripsViewModel()
 ) {
 
     var trips by remember { mutableStateOf(TripsViewModel.trips) }
