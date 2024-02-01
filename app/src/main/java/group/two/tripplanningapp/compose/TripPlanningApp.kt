@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 fun TripPlanningApp(
     userAuthViewModel: UserAuthViewModel = viewModel(factory = UserAuthViewModel.Factory),
     snackbarViewModel: SnackbarViewModel = viewModel(factory = SnackbarViewModel.Factory),
-    reviewViewModel: ReviewViewModel = viewModel(),
+    reviewViewModel: ReviewViewModel = viewModel(factory = ReviewViewModel.Factory),
 ) {
     val navController = rememberNavController()
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
@@ -47,10 +47,6 @@ fun TripPlanningApp(
     val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
     val localeConstantsData = userAuthViewModel.localeConstants.collectAsState()
     val localeConstants = localeConstantsData.value
-
-    LaunchedEffect(key1 = true) {
-        userAuthViewModel.loadLocaleData()
-    }
 
     fun logout() {
         reviewViewModel.clearData()
@@ -227,10 +223,13 @@ fun TripPlanningNavHost(
             arguments = Screen.DestinationDetails.navArguments,
         ) {
             DestinationDetailsScreen(
-                reviewViewModel = reviewViewModel,
                 destinationId = it.arguments?.getString("destinationId") ?: "",
                 formatCurrency = formatCurrency,
-                formatTimestamp = formatTimestamp
+                formatTimestamp = formatTimestamp,
+                reviews = reviewViewModel.curDesReviews.value,
+                getReviewerAvatarAndName = reviewViewModel::getReviewerAvatarAndName,
+                updateReview = reviewViewModel::updateReview,
+                deleteReview = reviewViewModel::deleteReview
             )
         }
     }

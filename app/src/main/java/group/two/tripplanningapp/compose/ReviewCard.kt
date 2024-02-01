@@ -43,10 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import group.two.tripplanningapp.data.Review
-import group.two.tripplanningapp.viewModels.ReviewViewModel
 
 @Composable
-fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMessage: (String) -> Unit, showReviewCreator: Boolean, formatTimestamp: (Long) -> String) {
+fun ReviewCard(review: Review, showSnackbarMessage: (String) -> Unit, showReviewCreator: Boolean, formatTimestamp: (Long) -> String, getReviewerAvatarAndName: (String, (String)->Unit, (String)->Unit) -> Unit,updateReview: (String, String, (String) -> Unit) -> Unit, deleteReview: (String, (String) -> Unit) -> Unit) {
     var isEditing by remember { mutableStateOf(false) }
     var editedContent by remember { mutableStateOf(review.content) }
     val fontSize = 14.sp
@@ -54,9 +53,10 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
     var saveClicked by remember { mutableStateOf(false) }
     var deleteClicked by remember { mutableStateOf(false) }
 
-    val reviewerAvatarURL = remember { mutableStateOf("") }
-    val reviewerName = remember { mutableStateOf("") }
-    reviewViewModel.getReviewerAvatarAndName(review.creatorID, reviewerAvatarURL, reviewerName)
+    val (reviewerAvatarURL, setReviewerAvatarURL) = remember { mutableStateOf("") }
+    val (reviewerName, setReviewerName) = remember { mutableStateOf("") }
+
+    getReviewerAvatarAndName(review.creatorID, setReviewerAvatarURL, setReviewerName)
 
     Card(
         modifier = Modifier
@@ -82,7 +82,7 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
                         contentAlignment = Alignment.Center
                     ) {
                         AsyncImage(
-                            model = reviewerAvatarURL.value,
+                            model = reviewerAvatarURL,
                             contentDescription = "Reviewer Avatar",
                             modifier = Modifier.fillMaxSize()
                         )
@@ -90,7 +90,7 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
 
                     // reviewer's name
                     Text(
-                        text = reviewerName.value,
+                        text = reviewerName,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
@@ -195,17 +195,17 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
                 Button(
                     onClick = {
                         if (saveClicked) {
-                            reviewViewModel.updateReview(
-                                reviewId = review.reviewId,
-                                newContent = editedContent,
-                                showSnackbarMessage = showSnackbarMessage,
+                            updateReview(
+                                review.reviewId,
+                                editedContent,
+                                showSnackbarMessage,
                             )
                             saveClicked = false
                             isEditing = false
                         } else if (deleteClicked) {
-                            reviewViewModel.deleteReview(
-                                reviewId = review.reviewId,
-                                showSnackbarMessage = showSnackbarMessage
+                            deleteReview(
+                                review.reviewId,
+                                showSnackbarMessage
                             )
                             deleteClicked = false
                         }

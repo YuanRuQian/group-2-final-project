@@ -320,11 +320,13 @@ fun Profile(
         LazyColumn {
             items(userReviews) { review ->
                     ReviewCard(
-                        reviewViewModel = reviewViewModel,
                         review = review,
                         showSnackbarMessage = showSnackbarMessage,
                         showReviewCreator = true,
-                        formatTimestamp = formatTimestamp
+                        formatTimestamp = formatTimestamp,
+                        getReviewerAvatarAndName = reviewViewModel::getReviewerAvatarAndName,
+                        updateReview = reviewViewModel::updateReview,
+                        deleteReview = reviewViewModel::deleteReview
                     )
             }
             if (userReviews.isEmpty()){

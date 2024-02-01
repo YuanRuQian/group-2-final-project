@@ -43,7 +43,7 @@ class UserAuthViewModel : ViewModel() {
         }
     }
 
-    fun loadLocaleData() {
+    private fun loadLocaleData() {
         val localeConstants = mutableListOf<LocaleConstant>()
         db.collection("localeConstants").get().addOnSuccessListener { result ->
             for (document in result) {

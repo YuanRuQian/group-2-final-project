@@ -22,17 +22,20 @@ import group.two.tripplanningapp.compose.SquaredAsyncImage
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.viewModels.DestinationDetailsViewModel
-import group.two.tripplanningapp.viewModels.ReviewViewModel
 
+// TODO: fix screen flickering when navigating to this screen
 @Composable
 fun DestinationDetailsScreen(
-    reviewViewModel: ReviewViewModel,
     formatCurrency: (Int) -> String,
     formatTimestamp: (Long) -> String,
     destinationId: String,
     destinationDetailsViewModel: DestinationDetailsViewModel = DestinationDetailsViewModel(
         destinationId
-    )
+    ),
+    reviews: List<Review>,
+    getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
+    updateReview: (String, String, (String) -> Unit) -> Unit,
+    deleteReview: (String, (String) -> Unit) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -50,7 +53,15 @@ fun DestinationDetailsScreen(
         if (destination == null) {
             Text(text = "Loading...")
         } else {
-            DestinationDetails(destination, formatCurrency, formatTimestamp, reviewViewModel)
+            DestinationDetails(
+                destination,
+                formatCurrency,
+                formatTimestamp,
+                reviews,
+                getReviewerAvatarAndName,
+                updateReview,
+                deleteReview
+            )
         }
     }
 }
@@ -60,7 +71,10 @@ fun DestinationDetails(
     destination: Destination,
     formatCurrency: (Int) -> String,
     formatTimestamp: (Long) -> String,
-    reviewViewModel: ReviewViewModel
+    reviews: List<Review>,
+    getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
+    updateReview: (String, String, (String) -> Unit) -> Unit,
+    deleteReview: (String, (String) -> Unit) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -100,6 +114,14 @@ fun DestinationDetails(
         ActivitiesSummary(destination.activities)
 
         StarRatingStatistics(destination.rating)
+
+        Reviews(
+            reviews = reviews,
+            formatTimestamp = formatTimestamp,
+            getReviewerAvatarAndName = getReviewerAvatarAndName,
+            updateReview = updateReview,
+            deleteReview = deleteReview
+        )
     }
 }
 
@@ -134,13 +156,31 @@ fun ActivitiesSummary(activities: List<String>) {
 }
 
 @Composable
-fun Reviews(reviews: List<Review>, viewModel: ReviewViewModel, formatTimestamp: (Long) -> String) {
+fun Reviews(
+    reviews: List<Review>,
+    formatTimestamp: (Long) -> String,
+    getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
+    updateReview: (String, String, (String) -> Unit) -> Unit,
+    deleteReview: (String, (String) -> Unit) -> Unit
+) {
     Text(text = "Reviews:")
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 0.dp, vertical = 8.dp)
-    ) {
-        items(count = reviews.size) { index ->
-            ReviewCard(reviewViewModel = viewModel, review = reviews[index], showSnackbarMessage = {}, showReviewCreator = false, formatTimestamp = formatTimestamp)
+    if (reviews.isEmpty()) {
+        Text(text = "No reviews yet.")
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 8.dp)
+        ) {
+            items(count = reviews.size) { index ->
+                ReviewCard(
+                    review = reviews[index],
+                    showSnackbarMessage = {},
+                    showReviewCreator = false,
+                    formatTimestamp = formatTimestamp,
+                    getReviewerAvatarAndName = getReviewerAvatarAndName,
+                    updateReview = updateReview,
+                    deleteReview = deleteReview
+                )
+            }
         }
     }
 }
