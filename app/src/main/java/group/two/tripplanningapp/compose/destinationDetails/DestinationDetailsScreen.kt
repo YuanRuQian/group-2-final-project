@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,10 +21,12 @@ import group.two.tripplanningapp.compose.ReviewCard
 import group.two.tripplanningapp.compose.SquaredAsyncImage
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.utilities.getCurrentUserID
 
 // TODO: fix screen flickering when navigating to this screen
 @Composable
 fun DestinationDetailsScreen(
+    loadReviews: (String) -> Unit,
     formatCurrency: (Int) -> String,
     formatTimestamp: (Long) -> String,
     destinationId: String,
@@ -40,6 +41,7 @@ fun DestinationDetailsScreen(
 
     LaunchedEffect(key1 = destinationId) {
         loadDestinationDetails(destinationId)
+        loadReviews(destinationId)
     }
 
     Log.d("DestinationDetailsScreen", "destination: $destination")
@@ -171,20 +173,19 @@ fun Reviews(
     if (reviews.isEmpty()) {
         Text(text = "No reviews yet.")
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 8.dp)
-        ) {
-            items(count = reviews.size) { index ->
-                ReviewCard(
-                    review = reviews[index],
-                    showSnackbarMessage = {},
-                    showReviewCreator = false,
-                    formatTimestamp = formatTimestamp,
-                    getReviewerAvatarAndName = getReviewerAvatarAndName,
-                    updateReview = updateReview,
-                    deleteReview = deleteReview
-                )
-            }
+
+        reviews.forEach { review ->
+            ReviewCard(
+                modifier = Modifier.padding(bottom = 8.dp),
+                review = review,
+                showSnackbarMessage = {},
+                showReviewCreator = false,
+                formatTimestamp = formatTimestamp,
+                getReviewerAvatarAndName = getReviewerAvatarAndName,
+                updateReview = updateReview,
+                deleteReview = deleteReview,
+                allowEditing = review.creatorID == getCurrentUserID()
+            )
         }
     }
 }

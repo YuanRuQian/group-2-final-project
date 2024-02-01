@@ -45,7 +45,17 @@ import coil.compose.AsyncImage
 import group.two.tripplanningapp.data.Review
 
 @Composable
-fun ReviewCard(review: Review, showSnackbarMessage: (String) -> Unit, showReviewCreator: Boolean, formatTimestamp: (Long) -> String, getReviewerAvatarAndName: (String, (String)->Unit, (String)->Unit) -> Unit,updateReview: (String, String, (String) -> Unit) -> Unit, deleteReview: (String, (String) -> Unit) -> Unit) {
+fun ReviewCard(
+    modifier: Modifier = Modifier,
+    review: Review,
+    showSnackbarMessage: (String) -> Unit,
+    showReviewCreator: Boolean,
+    formatTimestamp: (Long) -> String,
+    getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
+    updateReview: (String, String, (String) -> Unit) -> Unit,
+    deleteReview: (String, (String) -> Unit) -> Unit,
+    allowEditing: Boolean = true
+) {
     var isEditing by remember { mutableStateOf(false) }
     var editedContent by remember { mutableStateOf(review.content) }
     val fontSize = 14.sp
@@ -59,7 +69,7 @@ fun ReviewCard(review: Review, showSnackbarMessage: (String) -> Unit, showReview
     getReviewerAvatarAndName(review.creatorID, setReviewerAvatarURL, setReviewerName)
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         elevation = CardDefaults.cardElevation(6.dp),
@@ -146,33 +156,35 @@ fun ReviewCard(review: Review, showSnackbarMessage: (String) -> Unit, showReview
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                // Toggle between edit and save icon based on editing state
-                IconButton(onClick = {
-                    if (isEditing) {
-                        // Update Content
-                        saveClicked = true
-                    } else {
-                        // Handle edit action
-                        isEditing = true
+            if (allowEditing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    // Toggle between edit and save icon based on editing state
+                    IconButton(onClick = {
+                        if (isEditing) {
+                            // Update Content
+                            saveClicked = true
+                        } else {
+                            // Handle edit action
+                            isEditing = true
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isEditing) Icons.Default.Save else Icons.Default.Edit,
+                            contentDescription = if (isEditing) "Save Review" else "Edit Review"
+                        )
                     }
-                }) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Save else Icons.Default.Edit,
-                        contentDescription = if (isEditing) "Save Review" else "Edit Review"
-                    )
-                }
 
-                IconButton(onClick = {
-                    if (isEditing) isEditing = false else deleteClicked = true
-                }) {
-                    Icon(
-                        imageVector = if (isEditing) Icons.Default.Cancel else Icons.Default.Delete,
-                        contentDescription = if (isEditing) "Cancel Editing" else "Delete Review"
-                    )
+                    IconButton(onClick = {
+                        if (isEditing) isEditing = false else deleteClicked = true
+                    }) {
+                        Icon(
+                            imageVector = if (isEditing) Icons.Default.Cancel else Icons.Default.Delete,
+                            contentDescription = if (isEditing) "Cancel Editing" else "Delete Review"
+                        )
+                    }
                 }
             }
         }

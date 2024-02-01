@@ -227,6 +227,7 @@ fun TripPlanningNavHost(
             arguments = Screen.DestinationDetails.navArguments,
         ) {
             DestinationDetailsScreen(
+                loadReviews = reviewViewModel::getDestinationReviews,
                 destinationId = it.arguments?.getString("destinationId") ?: "",
                 formatCurrency = formatCurrency,
                 formatTimestamp = formatTimestamp,

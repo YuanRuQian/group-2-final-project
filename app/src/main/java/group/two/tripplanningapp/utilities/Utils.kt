@@ -4,6 +4,7 @@ import android.util.Log
 import android.util.Patterns
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.auth
 import com.google.firebase.storage.storage
 import group.two.tripplanningapp.data.Rating
 import kotlinx.coroutines.CoroutineScope
@@ -36,4 +37,8 @@ fun loadImageUrlFromFirebaseStorageUri(uri: String, setUrl: (String) -> Unit, co
         Log.d("DestinationsViewModel", "Image url: $url")
         setUrl(url)
     }
+}
+
+fun getCurrentUserID(): String {
+    return Firebase.auth.currentUser?.uid ?: ""
 }

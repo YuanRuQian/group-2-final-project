@@ -84,12 +84,11 @@ class ReviewViewModel : ViewModel()  {
             fetchReviews(yourReviewIds.value, _yourReviews)
         }
     }
-    fun clearDestinationReviews(){
-        _curDesReviews.value = emptyList()
-    }
+
     fun getDestinationReviews(destinationID:String){
+        _curDesReviews.value = emptyList()
         // Get Review IDs
-        val reviewsCollection = firestore.collection("destination").document(destinationID)
+        val reviewsCollection = firestore.collection("destinations").document(destinationID)
             .collection("reviews")
 
         reviewsCollection.addSnapshotListener { snapshot, error ->
