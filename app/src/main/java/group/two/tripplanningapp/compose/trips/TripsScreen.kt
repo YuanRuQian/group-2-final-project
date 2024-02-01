@@ -157,6 +157,8 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
             .clickable {
             // Handle item click
                 TripsViewModel.clickIndex = index
+                Log.d("Jerry Index",index.toString())
+                Log.d("Jerry clickIndex",TripsViewModel.clickIndex.toString())
                 navigateToCreate()
             },
         shape = MaterialTheme.shapes.medium

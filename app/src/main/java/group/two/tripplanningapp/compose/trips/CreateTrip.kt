@@ -36,13 +36,18 @@ import androidx.compose.ui.unit.dp
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.viewModels.TripsViewModel
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,7 +83,7 @@ fun CreateTrip(
 
 
     var tripIndex = 0
-    if (existTrip.tripName != "") {
+    if (TripsViewModel.clickIndex != -1) {
         for (i in 0 .. TripsViewModel.trips.size - 1) {
             if (existTrip.tripName == TripsViewModel.trips[i].tripName) {
                 tripIndex = i
@@ -166,7 +171,7 @@ fun CreateTrip(
             Button(
                 onClick = {
 
-                    if (existTrip.tripName != "") {
+                    if (TripsViewModel.clickIndex != -1) {
                         var inputSelected = mutableListOf<String>()
                         for (selectedDestination in selectedDestinations) {
                             inputSelected.add(selectedDestination)
@@ -201,23 +206,38 @@ fun CreateTrip(
                     des.add(d)
                 }
             }
-            DropdownMenuExample(destinations = des, index = index, selectedOption = selectedDestinations[index]) { newOption ->
-
-                if (existTrip.tripName != "") {
-                    var inputSelected = mutableListOf<String>()
-                    for (selectedDestination in selectedDestinations) {
-                        inputSelected.add(selectedDestination)
+            DropdownMenuExample(destinations = des, index = index, selectedOption = selectedDestinations[index],
+                onCloseClick = {
+                    var have = mutableListOf<String>()
+                    for (s in selectedDestinations) {
+                        have.add(s)
                     }
-                    inputSelected[index] = newOption
-                    val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
-                    val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
-                    newTripsList[tripIndex] = newTrip
-                    TripsViewModel.trips = newTripsList
+                    have.removeAt(index)
+                    TripsViewModel.trips[tripIndex].destinations = have
+                    selectedDestinations.removeAt(index)
+
+                },
+
+                onOptionSelected = { newOption ->
+
+                    if (TripsViewModel.clickIndex != -1) {
+                        var inputSelected = mutableListOf<String>()
+                        for (selectedDestination in selectedDestinations) {
+                            inputSelected.add(selectedDestination)
+                        }
+                        inputSelected[index] = newOption
+                        val newTrip = Trip(tripName, numberOfPeople, privacy, inputSelected)
+                        val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
+                        newTripsList[tripIndex] = newTrip
+                        TripsViewModel.trips = newTripsList
+                    }
+
+                    selectedDestinations[index] = newOption
+
                 }
 
-                selectedDestinations[index] = newOption
 
-            }
+            )
         }
 
         item {
@@ -240,7 +260,7 @@ fun CreateTrip(
             // Confirm button to add the trip to TripsScreen
             Button(
                 onClick = {
-                    if (existTrip.tripName == "") {
+                    if (TripsViewModel.clickIndex == -1) {
                         var inputSelected = mutableListOf<String>()
                         for (selectedDestination in selectedDestinations) {
                             inputSelected.add(selectedDestination)
@@ -281,7 +301,7 @@ fun CreateTrip(
 
 
 @Composable
-fun DropdownMenuExample(destinations: List<String>, index: Int, selectedOption: String, onOptionSelected: (String) -> Unit) {
+fun DropdownMenuExample(destinations: List<String>, index: Int, selectedOption: String, onCloseClick: () -> Unit ,onOptionSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
 
@@ -307,7 +327,24 @@ fun DropdownMenuExample(destinations: List<String>, index: Int, selectedOption: 
             horizontalArrangement = Arrangement.Start
         ) {
             Text(text = selectedOption, color = Color.White)
+
+
+
             Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.White)
+            IconButton(
+                onClick = { onCloseClick() },
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = Color.White
+                )
+            }
+
         }
 
 
