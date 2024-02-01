@@ -48,116 +48,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import group.two.tripplanningapp.viewModels.DestinationsViewModel
 
 @OptIn(ExperimentalMaterialApi::class)
-//@Composable
-//fun CreateTrip(
-//    navigateToTripsScreen: () -> Unit
-//) {
-//    var tripName by remember { mutableStateOf("") }
-//    var numberOfPeople by remember { mutableStateOf(1) }
-//    var privacy by remember { mutableStateOf(Privacy.Private) }
-//    var selectedDestination by remember { mutableStateOf("") }
-//    val destinations = listOf("Destination1", "Destination2", "Destination3") // Add your destination options
-//
-//    var selectedDestinations by remember { mutableStateOf(mutableStateListOf("")) }
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(16.dp),
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        // UI for capturing trip details
-//        TextField(
-//            value = tripName,
-//            onValueChange = { tripName = it },
-//            label = { Text("Trip Name") },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp)
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//        OutlinedTextField(
-//            value = numberOfPeople.toString(),
-//            onValueChange = { numberOfPeople = it.toIntOrNull() ?: 1 },
-//            label = { Text("Number of People") },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp)
-//        )
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Text("Privacy:")
-//            Spacer(modifier = Modifier.width(8.dp))
-//            Switch(
-//                checked = privacy == Privacy.Private,
-//                onCheckedChange = { isChecked ->
-//                    privacy = if (isChecked) Privacy.Private else Privacy.Public
-//                }
-//            )
-//            Spacer(modifier = Modifier.width(8.dp))
-//            Text(if (privacy == Privacy.Private) "Private" else "Public")
-//        }
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-////        DropdownMenuExample(destinations = destinations)
-//
-//        Button(
-//            onClick = {
-//                selectedDestinations.add("") // Add an empty option
-//            },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp)
-//        ) {
-//            Text("Add Dropdown")
-//        }
-//
-//        // Display DropdownMenus
-//        selectedDestinations.forEachIndexed { index, selectedDestination ->
-//            DropdownMenuExample(destinations = destinations, index = index, selectedOption = selectedDestination) { newOption ->
-//                selectedDestinations[index] = newOption
-//            }
-//        }
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//        OutlinedButton(
-//            onClick = {
-//                // Navigate back to TripsScreen
-//                navigateToTripsScreen()
-//            },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp)
-//        ) {
-//            Text("Back")
-//        }
-//        Spacer(modifier = Modifier.height(8.dp))
-//        // Confirm button to add the trip to TripsScreen
-//        Button(
-//            onClick = {
-//                val newTrip = Trip(tripName, numberOfPeople, privacy, listOf(selectedDestination))
-//                // Add the new trip to the TripsScreen's list
-//                val newTripsList: MutableList<Trip> = TripsViewModel.trips.toMutableList()
-//                newTripsList.add(newTrip)
-//                TripsViewModel.trips = newTripsList
-//                // Navigate back to TripsScreen
-//                navigateToTripsScreen()
-//            },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp)
-//        ) {
-//            Text("Confirm")
-//        }
-//    }
-//
-//}
-
 @Composable
 fun CreateTrip(
     navigateToTripsScreen: () -> Unit,
@@ -325,6 +215,8 @@ fun DropdownMenuExample(destinations: List<String>, index: Int, selectedOption: 
             Text(text = selectedOption, color = Color.White)
             Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.White)
         }
+
+
 
         // Dropdown Menu
         DropdownMenu(

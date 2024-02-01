@@ -1,5 +1,6 @@
 package group.two.tripplanningapp.compose.trips
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -25,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import group.two.tripplanningapp.data.Trip
+import group.two.tripplanningapp.viewModels.DestinationsViewModel
 import group.two.tripplanningapp.viewModels.TripsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,11 +48,10 @@ fun TripsScreen(
 ) {
     TripsViewModel.fetchTrips()
 
-    var trips by remember { mutableStateOf(emptyList<Trip>()) }
+    var trips by remember { mutableStateOf(TripsViewModel.trips) }
 
 //    TripsViewModel.trips = getDummyTrips()
 
-    trips = TripsViewModel.trips
 
     Box(
         modifier = Modifier
@@ -73,12 +77,19 @@ fun TripsScreen(
                     .fillMaxSize()
                     .padding(8.dp)
             ) {
-                items(trips) { trip ->
-                    TripCard(trip = trip) {
+//                items(trips) { trip ->
+//                    TripCard(trip = trip) {
+//                        // Remove the trip when close button is clicked
+//                        TripsViewModel.trips = TripsViewModel.trips.filter { it != trip }
+//                        trips = trips.filter { it != trip }
+//
+//                    }
+//                }
+                itemsIndexed(trips) { index, trip ->
+                    TripCard(index = index) {
                         // Remove the trip when close button is clicked
-                        TripsViewModel.trips = TripsViewModel.trips.filter { it != trip }
-                        trips = trips.filter { it != trip }
-
+                        TripsViewModel.trips = TripsViewModel.trips.filterIndexed { i, _ -> i != index }
+                        trips = trips.filterIndexed { i, _ -> i != index }
                     }
                 }
             }
@@ -115,7 +126,28 @@ enum class Privacy {
 
 
 @Composable
-fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
+fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory), onCloseClick: () -> Unit) {
+
+    var trip by remember { mutableStateOf(Trip("",0,Privacy.Private,listOf())) }
+
+    trip = TripsViewModel.trips[index]
+
+    var privacy by remember { mutableStateOf(trip.privacy) }
+
+    var Cost by remember { mutableStateOf(0) }
+
+    val destinationData = destinationsViewModel.filteredDestinationData.collectAsState()
+    val destinationsDes = destinationData.value
+
+    Cost = 0
+
+    for (d in trip.destinations) {
+        for (Des in destinationsDes) {
+            if (d == Des.name) {
+                Cost = Cost + Des.averageCostPerPersonInCents*trip.numberOfPeople
+            }
+        }
+    }
 
     Card(
         modifier = Modifier
@@ -172,10 +204,14 @@ fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Switch(
-                    checked = trip.privacy == Privacy.Private,
+                    checked = privacy == Privacy.Private,
                     onCheckedChange = { isChecked ->
                         // Update privacy based on the switch state
-                        trip.privacy = if (isChecked) Privacy.Private else Privacy.Public
+
+                        privacy = if (isChecked) Privacy.Private else Privacy.Public
+                        TripsViewModel.trips[index].privacy = if (isChecked) Privacy.Private else Privacy.Public
+                        trip = TripsViewModel.trips[index]
+
                     }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -200,6 +236,14 @@ fun TripCard(trip: Trip, onCloseClick: () -> Unit) {
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
             }
+
+            Text(
+                text = "Cost: $Cost US Cent",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier
+                    .padding(bottom = 4.dp)
+            )
         }
     }
 }
