@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="group.two.tripplanningapp" />
-                  <option name="mobileSdkAppId" value="1:392446348787:android:38afa7223c54b429725686" />
-                  <option name="projectId" value="group-2-final-project" />
-                  <option name="projectNumber" value="392446348787" />
+                  <option name="appId" value="PLACEHOLDER" />
+                  <option name="mobileSdkAppId" value="" />
+                  <option name="projectId" value="" />
+                  <option name="projectNumber" value="" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

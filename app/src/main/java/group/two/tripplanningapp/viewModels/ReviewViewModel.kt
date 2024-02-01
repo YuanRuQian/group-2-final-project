@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -28,6 +31,7 @@ class ReviewViewModel : ViewModel()  {
     val yourReviews: MutableState<List<Review>> get() = _yourReviews
 
     private val _curDesReviews: MutableState<List<Review>> = mutableStateOf(emptyList())
+    val curDesReviews: MutableState<List<Review>> get() = _curDesReviews
 
     init {
         getUserReviews()
@@ -43,15 +47,15 @@ class ReviewViewModel : ViewModel()  {
         }
     }
 
-    fun getReviewerAvatarAndName(userID:String, avatar:MutableState<String>, userName:MutableState<String>){
+    fun getReviewerAvatarAndName(userID:String, setAvatar: (String)->Unit, setUsername: (String) -> Unit){
         val userDocumentRef = firestore.collection("userProfiles").document(userID)
         userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
             val user = documentSnapshot.toObject(UserProfile::class.java)
             user?.let {
 
                 Log.d("TripApppDebug", "it.avatar: ${it.avatar}")
-                avatar.value = if (it.avatar!="null") it.avatar else defaultAvatarURL.value
-                 userName.value = if (it.userName!="null") it.userName else "Unknown User"
+                setAvatar(if (it.avatar!="null") it.avatar else defaultAvatarURL.value)
+                setUsername(if (it.userName!="null") it.userName else "Unknown User")
             }
         }.addOnFailureListener { exception ->
             Log.e(TAG, "Error Avatar And Name for user $userID: $exception")
@@ -61,7 +65,9 @@ class ReviewViewModel : ViewModel()  {
     // User Reviews
     private fun getUserReviews() {
         // Get Review IDs
-        val reviewsCollection = firestore.collection("userProfiles").document(user?.uid?:"")
+        if (user==null) return
+
+        val reviewsCollection = firestore.collection("userProfiles").document(user.uid)
             .collection("reviews")
 
         reviewsCollection.addSnapshotListener { snapshot, error ->
@@ -196,5 +202,13 @@ class ReviewViewModel : ViewModel()  {
     fun clearData() {
         _yourReviews.value = emptyList()
         _curDesReviews.value = emptyList()
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                ReviewViewModel()
+            }
+        }
     }
 }
