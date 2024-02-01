@@ -24,6 +24,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,12 +47,16 @@ import group.two.tripplanningapp.utilities.isEmailValid
 @Composable
 fun RegisterScreen(
     localeConstants: List<LocaleConstant>,
+    loadLocaleConstants: () -> Unit,
     signup: (String, String, String, LocaleConstant, () -> Unit, (String) -> Unit, (String) -> Unit) -> Unit,
     navigateToLoginScreen: () -> Unit,
     navigateToHomeScreen: () -> Unit,
     showSnackbarMessage: (String) -> Unit,
     showDialog: (String) -> Unit
 ) {
+    LaunchedEffect(key1 = true) {
+        loadLocaleConstants()
+    }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     val (isEmailValid, setIsEmailValid) = remember { mutableStateOf(true) }
@@ -60,7 +65,7 @@ fun RegisterScreen(
     val (isRegisterButtonEnabled, setIsRegisterButtonEnabled) = remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     // TODO: use GPS to get the user's region as default
-    val (selectedLocaleConstant, setSelectedLocaleConstant) = remember { mutableStateOf(if(localeConstants.isNotEmpty())localeConstants[0] else LocaleConstant()) }
+    val (selectedLocaleConstant, setSelectedLocaleConstant) = remember { mutableStateOf(if (localeConstants.isNotEmpty()) localeConstants[0] else LocaleConstant()) }
     val (expanded, setExpanded) = remember { mutableStateOf(false) }
 
     fun updateRegisterButtonState() {
@@ -155,13 +160,22 @@ fun RegisterScreen(
 
         LocaleDropdown(
             localeConstants,
-            expanded, setExpanded, selectedLocaleConstant, setSelectedLocaleConstant)
+            expanded, setExpanded, selectedLocaleConstant, setSelectedLocaleConstant
+        )
 
         Spacer(modifier = Modifier.padding(32.dp))
 
         Button(
             onClick = {
-                signup(email, password, username, selectedLocaleConstant, navigateToHomeScreen, showSnackbarMessage, showDialog)
+                signup(
+                    email,
+                    password,
+                    username,
+                    selectedLocaleConstant,
+                    navigateToHomeScreen,
+                    showSnackbarMessage,
+                    showDialog
+                )
                 keyboardController?.hide()
             },
             enabled = isRegisterButtonEnabled,

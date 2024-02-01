@@ -34,6 +34,7 @@ import group.two.tripplanningapp.compose.RatingBar
 import group.two.tripplanningapp.data.LocaleConstant
 import group.two.tripplanningapp.viewModels.SettingsViewModel
 
+// TODO: preload previous feedback and rating
 // TODO: same currency code can be used for different countries, how to handle case like EUR for both France and Germany?
 @Composable
 fun SettingsScreen(
@@ -58,6 +59,10 @@ fun SettingsScreen(
     errorMessage?.let {
         Toast.makeText(LocalContext.current, it, Toast.LENGTH_LONG).show()
         settingsViewModel.errorMessage.value = null
+    }
+
+    fun checkIfFeedbackSubmitButtonShouldBeEnabled() {
+        setEnabled(feedbackText.isNotBlank() && rating > 0)
     }
 
     val currentUserLocaleConstantCode =
@@ -96,13 +101,18 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(16.dp))
         TextField(
             value = feedbackText,
-            onValueChange = { feedbackText = it },
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = {
+                feedbackText = it
+                checkIfFeedbackSubmitButtonShouldBeEnabled()
+            },
             placeholder = { Text("Enter your feedback here...") }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-        RatingBar(rating = rating, onRatingChange = { rating = it })
+        RatingBar(rating = rating, onRatingChange = {
+            rating = it
+            checkIfFeedbackSubmitButtonShouldBeEnabled()
+        })
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
@@ -112,7 +122,7 @@ fun SettingsScreen(
                 settingsViewModel.submitFeedback(feedbackText, rating)
                 feedbackText = ""
                 rating = 0 // Reset rating
-                setEnabled(true)
+                checkIfFeedbackSubmitButtonShouldBeEnabled()
             },
         ) {
             Text("Submit Feedback")

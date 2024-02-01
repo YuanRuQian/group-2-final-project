@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-class DestinationDetailsViewModel(id: String) : ViewModel() {
+class DestinationDetailsViewModel: ViewModel() {
 
     private val _db = Firebase.firestore
 
@@ -21,14 +21,11 @@ class DestinationDetailsViewModel(id: String) : ViewModel() {
     private val _destination = MutableStateFlow<Destination?>(null)
     val destination: StateFlow<Destination?> get() = _destination
 
-    init {
-        loadDestinationDetails(id)
-    }
-
-    private fun loadDestinationDetails(id: String) {
-        _db.collection("destinations").document(id).get().addOnSuccessListener {
-            val destination = it.toObject(Destination::class.java)
-            _destination.value = destination
+    fun loadDestinationDetails(id: String) {
+        viewModelScope.launch {
+            val res = _db.collection("destinations").document(id).get().await()
+            _destination.value = res.toObject(Destination::class.java)
+            Log.d("DestinationDetailsViewModel", "Destination: ${_destination.value}")
         }
     }
 
