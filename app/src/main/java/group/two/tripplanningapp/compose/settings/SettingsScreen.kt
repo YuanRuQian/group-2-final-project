@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import group.two.tripplanningapp.data.LocaleConstant
 import group.two.tripplanningapp.viewModels.SettingsViewModel
+import group.two.tripplanningapp.compose.RatingBar
 
 @Composable
 fun SettingsScreen(
@@ -126,17 +127,3 @@ fun CurrencyDropdown(
     }
 }
 
-@Composable
-fun RatingBar(rating: Int, onRatingChange: (Int) -> Unit) {
-    Row {
-        (1..5).forEach { index ->
-            IconToggleButton(
-                checked = index <= rating,
-                onCheckedChange = { onRatingChange(index) }
-            ) {
-                val tint = if (index <= rating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                Icon(Icons.Default.Star, contentDescription = null, tint = tint)
-            }
-        }
-    }
-}
