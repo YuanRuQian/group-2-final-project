@@ -14,14 +14,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import group.two.tripplanningapp.utilities.Region
+import group.two.tripplanningapp.data.LocaleConstant
 import group.two.tripplanningapp.viewModels.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
-    settingsViewModel: SettingsViewModel = viewModel()
+    settingsViewModel: SettingsViewModel = viewModel(),
+    localeConstants: List<LocaleConstant>
 ) {
-    val (selectedRegion, setSelectedRegion) = remember { mutableStateOf(Region.UNITED_STATES) }
+    val (selectedLocaleConstant, setSelectedLocaleConstant) = remember { mutableStateOf(if(localeConstants.isNotEmpty())localeConstants[0] else LocaleConstant()) }
     val (expanded, setExpanded) = remember { mutableStateOf(false) }
 
     var feedbackText by remember { mutableStateOf("") }
@@ -49,7 +50,9 @@ fun SettingsScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
         Text("Choose Currency")
-        CurrencyDropdownMenu(expanded, setExpanded, selectedRegion, setSelectedRegion)
+        CurrencyDropdown(
+            localeConstants,
+            expanded, setExpanded, selectedLocaleConstant, setSelectedLocaleConstant)
         Spacer(modifier = Modifier.height(16.dp))
 
         Text("Your Feedback")
@@ -82,17 +85,19 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CurrencyDropdownMenu(
+fun CurrencyDropdown(
+    localeConstants: List<LocaleConstant>,
     expanded: Boolean,
     setExpanded: (Boolean) -> Unit,
-    selectedRegion: Region,
-    setSelectedRegion: (Region) -> Unit
+    selectedLocaleConstant: LocaleConstant,
+    setSelectedLocaleConstant: (LocaleConstant) -> Unit
 ) {
+    val uniqueLocaleConstants = localeConstants.distinctBy { it.currencyCode }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { setExpanded(it) }) {
         CompositionLocalProvider(LocalTextInputService provides null) {
             TextField(
                 readOnly = true,
-                value = selectedRegion.currencyCode,
+                value = selectedLocaleConstant.currencyCode,
                 onValueChange = {},
                 label = { Text("Currency") },
                 trailingIcon = {
@@ -109,11 +114,11 @@ fun CurrencyDropdownMenu(
             expanded = expanded,
             onDismissRequest = { setExpanded(false) },
         ) {
-            Region.entries.forEach { region ->
+            uniqueLocaleConstants.forEach { localeConstant ->
                 DropdownMenuItem(text = {
-                    Text(text = region.currencyCode)
+                    Text(text = localeConstant.currencyCode)
                 }, onClick = {
-                    setSelectedRegion(region)
+                    setSelectedLocaleConstant(localeConstant)
                     setExpanded(false)
                 })
             }
