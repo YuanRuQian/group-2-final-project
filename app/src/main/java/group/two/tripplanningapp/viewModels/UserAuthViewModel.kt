@@ -42,7 +42,8 @@ class UserAuthViewModel : ViewModel() {
                             if (profileUpdateTask.isSuccessful) {
                                 // Add user details to Firestore
                                 val user = hashMapOf(
-                                    "localeAreaCode" to localeAreaCode
+                                    "localeAreaCode" to localeAreaCode,
+                                    "userName" to username
                                     // TODO: Add more user details as needed
                                 )
 
