@@ -41,6 +41,8 @@ class TripsViewModel : ViewModel() {
 
         var tripToken = ""
 
+        var firstTime = true
+
 
 
         // Your logic to fetch trips from Firebase
@@ -123,7 +125,44 @@ class TripsViewModel : ViewModel() {
 
             TripsViewModel.tripToken = tripId
 
-            
+
+            if (TripsViewModel.firstTime) {
+                val documentSnapshot = firestore.collection("trips").document(tripId).get().await()
+
+                if (documentSnapshot.exists()) {
+                    // 获取 trips 字段的值
+                    val tripsMapList = documentSnapshot["trips"] as List<Map<String, Any>>?
+
+                    // 将 List<Map<String, Any>> 转换为 List<Trip>
+                    TripsViewModel.trips = tripsMapList?.map { tripMap ->
+                        Trip(
+                            tripName = tripMap["tripName"] as String,
+                            numberOfPeople = (tripMap["numberOfPeople"] as Long).toInt(),
+                            privacy = Privacy.valueOf(tripMap["privacy"] as String),
+                            destinations = tripMap["destinations"] as List<String>
+                        )
+                    } ?: emptyList()
+                }
+
+                TripsViewModel.firstTime = false
+            }
+            else{
+                val documentD = collectionReference.document(tripId)
+
+                val tripsMapList = TripsViewModel.trips.map { trip ->
+                    mapOf(
+                        "tripName" to trip.tripName,
+                        "numberOfPeople" to trip.numberOfPeople,
+                        "privacy" to trip.privacy.name,
+                        "destinations" to trip.destinations
+                    )
+                }
+
+                documentD.set(mapOf("trips" to tripsMapList)).await()
+            }
+
+
+
 
 
 

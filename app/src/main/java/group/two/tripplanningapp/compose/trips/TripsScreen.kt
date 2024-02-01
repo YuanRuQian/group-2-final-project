@@ -51,6 +51,8 @@ fun TripsScreen(
 
     var trips by remember { mutableStateOf(TripsViewModel.trips) }
 
+    tripsViewModel.fetchTrips()
+
 //    TripsViewModel.trips = getDummyTrips()
 
 
