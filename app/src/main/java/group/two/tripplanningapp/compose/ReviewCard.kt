@@ -106,10 +106,6 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
                 fontSize = 18.sp
             )
             Text(
-                text = "Rating: ${review.rating}",
-                fontSize = 14.sp
-            )
-            Text(
                 text = "Created At: ${review.timeCreated?.let { formatTimestamp(it) }}",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
@@ -118,6 +114,10 @@ fun ReviewCard(reviewViewModel: ReviewViewModel, review: Review, showSnackbarMes
                 text = "Last Edit At: ${review.timeEdited?.let { formatTimestamp(it) }}",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = "Rating: ${review.rating}",
+                fontSize = 14.sp
             )
             Spacer(modifier = Modifier.height(2.dp))
 
