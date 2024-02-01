@@ -141,6 +141,8 @@ class UserAuthViewModel : ViewModel() {
         auth.signOut()
         _userLiveData.value = null
         _isUserLoggedIn.value = false
+        _localeConstants.value = emptyList()
+        currentUserLocaleConstant = null
         navigateToLoginScreen()
     }
 

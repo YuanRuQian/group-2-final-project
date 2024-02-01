@@ -77,7 +77,6 @@ fun DestinationDetails(destination: Destination, formatCurrency: (Int) -> String
             modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
         )
 
-        // TODO: render price in localized currency
         Text(
             text = "Average Cost per Person: ${formatCurrency(destination.averageCostPerPersonInCents)}",
             modifier = Modifier.padding(bottom = 16.dp),
