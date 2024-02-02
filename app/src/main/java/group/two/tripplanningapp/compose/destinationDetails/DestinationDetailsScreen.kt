@@ -42,6 +42,7 @@ import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.utilities.getCurrentUserID
 
+// TODO: fix the star stats updates after deleting a review
 // TODO: somtimes addDestinationToTrip fails to add the destination to the trip without any error message
 @Composable
 fun DestinationDetailsScreen(
@@ -52,7 +53,7 @@ fun DestinationDetailsScreen(
     reviews: List<Review>,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, (String) -> Unit) -> Unit,
+    deleteReview: (String, Review, (String) -> Unit) -> Unit,
     loadDestinationDetails: (String) -> Unit,
     destination: Destination?,
     createNewReview: (String) -> Unit,
@@ -131,7 +132,7 @@ fun DestinationDetails(
     reviews: List<Review>,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, (String) -> Unit) -> Unit,
+    deleteReview: (String, Review, (String) -> Unit) -> Unit,
     trips: List<Trip>,
     addDestinationToTrip: (Int, Destination, Trip, () -> Unit, () -> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit,
@@ -233,7 +234,7 @@ fun Reviews(
     formatTimestamp: (Long) -> String,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, (String) -> Unit) -> Unit
+    deleteReview: (String, Review, (String) -> Unit) -> Unit
 ) {
     Log.d("Reviews", "reviews: $reviews")
     Text(text = "Reviews:")
@@ -249,9 +250,9 @@ fun Reviews(
                 formatTimestamp = formatTimestamp,
                 getReviewerAvatarAndName = getReviewerAvatarAndName,
                 updateReview = updateReview,
-                deleteReview = { reviewId, showSnackbarMessage ->
+                deleteReview = { reviewId, review, showSnackbarMessage ->
                     run {
-                        deleteReview(reviewId, showSnackbarMessage)
+                        deleteReview(reviewId, review, showSnackbarMessage)
                         loadReviews(destination.id)
                     }
                 },
