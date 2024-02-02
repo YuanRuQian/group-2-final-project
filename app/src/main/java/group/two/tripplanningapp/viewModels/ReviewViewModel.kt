@@ -21,15 +21,14 @@ import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+// TODO: fix all cards display the same avatar
 class ReviewViewModel : ViewModel() {
     private val TAG = "TripApppDebug_ReviewViewModel"
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val user = auth.currentUser
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
-    private val defaultAvatarURL = mutableStateOf("")
-
+    private val defaultAvatarURL: MutableState<String> = mutableStateOf("")
     private val yourReviewIds: MutableState<List<String>> = mutableStateOf(emptyList())
 
     private val _yourReviews: MutableState<List<Review>> = mutableStateOf(emptyList())
@@ -57,26 +56,37 @@ class ReviewViewModel : ViewModel() {
         setAvatar: (String) -> Unit,
         setUsername: (String) -> Unit
     ) {
-        val userDocumentRef = firestore.collection("userProfiles").document(userID)
-        userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
-            val user = documentSnapshot.toObject(UserProfile::class.java)
-            user?.let {
-                Log.d("TripApppDebug", "it.avatar: ${it.avatar}")
-                setAvatar(if (it.avatar != "null") it.avatar else defaultAvatarURL.value)
-                setUsername(if (it.userName != "null") it.userName else "Unknown User")
+        Log.d("TripApppDebug", "getReviewerAvatarAndName: $userID, default url: ${defaultAvatarURL.value}")
+        setAvatar(defaultAvatarURL.value)
+        firestore.collection("userProfiles").document(userID).get()
+            .addOnSuccessListener { documentSnapshot ->
+                val user = documentSnapshot.toObject(UserProfile::class.java)
+                if (user != null) {
+                    Log.d("TripApppDebug", "it.avatar: ${user.avatar}")
+                    if (!(user.avatar == "null" || user.avatar.isEmpty())) {
+                        setAvatar(user.avatar)
+                    }
+                    setUsername(if (!(user.userName == "null" || user.userName.isEmpty())) user.userName else "Unknown User")
+                } else {
+                    setUsername("Unknown User")
+                }
+            }.addOnFailureListener { exception ->
+                Log.e(TAG, "Error Avatar And Name for user $userID: $exception")
             }
-        }.addOnFailureListener { exception ->
-            Log.e(TAG, "Error Avatar And Name for user $userID: $exception")
-        }
+
     }
 
     // User Reviews
     private fun getUserReviews() {
+        Log.d(TAG, "getUserReviews: ")
         // Get Review IDs
-        if (user == null) return
+        if (auth.currentUser == null) {
+            return
+        }
 
-        val reviewsCollection = firestore.collection("userProfiles").document(user.uid)
-            .collection("reviews")
+        val reviewsCollection =
+            firestore.collection("userProfiles").document(auth.currentUser!!.uid)
+                .collection("reviews")
 
         reviewsCollection.addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -94,12 +104,11 @@ class ReviewViewModel : ViewModel() {
     }
 
     fun getDestinationReviews(destinationID: String) {
+        Log.d(TAG, "getDestinationReviews: $destinationID")
         _curDesReviews.value = emptyList()
         // Get Review IDs
-        val reviewsCollection = firestore.collection("destinations").document(destinationID)
-            .collection("reviews")
-
-        reviewsCollection.addSnapshotListener { snapshot, error ->
+        firestore.collection("destinations").document(destinationID)
+            .collection("reviews").addSnapshotListener { snapshot, error ->
             if (error != null) {
                 Log.e(TAG, "Error getting destination($destinationID) review IDs: $error")
             }
@@ -116,6 +125,7 @@ class ReviewViewModel : ViewModel() {
 
     private fun fetchReviews(reviewIds: List<String>, toBeFetched: MutableState<List<Review>>) {
         // Initialize an empty list to store fetched reviews
+        Log.d(TAG, "fetchReviews: reviewIds: $reviewIds")
         val fetchedReviews = mutableListOf<Review>()
 
         // Loop through each review ID and fetch the corresponding review
@@ -128,14 +138,15 @@ class ReviewViewModel : ViewModel() {
                     // Add the fetched review to the list
                     it.reviewId = reviewId
                     // Allow edit when comment it is yours
-                    if (it.creatorID == user?.uid.toString()) it.editable = true
+                    if (it.creatorID == auth.currentUser?.uid.toString()) it.editable = true
                     fetchedReviews.add(it)
                 }
 
                 // Check if all reviews have been fetched
                 if (fetchedReviews.size == reviewIds.size) {
                     // Update with the fetched reviews
-                    toBeFetched.value = fetchedReviews
+                    toBeFetched.value = fetchedReviews.sortedByDescending { it.timeCreated }
+                    Log.d(TAG, "fetchReviews: success fetchedReviews: ${fetchedReviews.map { it.content }}")
                 }
 
             }.addOnFailureListener { exception ->
@@ -173,7 +184,7 @@ class ReviewViewModel : ViewModel() {
         rating: Int,
         showSnackbarMessage: (String) -> Unit
     ) {
-        viewModelScope.launch() {
+        viewModelScope.launch {
 
             val reviewDocumentRef = firestore.collection("reviews").document()
 
@@ -184,7 +195,7 @@ class ReviewViewModel : ViewModel() {
 
             val newReview = ReviewPostData(
                 content = content,
-                creatorID = user?.uid ?: "",
+                creatorID = auth.currentUser?.uid ?: "",
                 destination = destinationName,
                 rating = rating
             )
@@ -196,7 +207,7 @@ class ReviewViewModel : ViewModel() {
 
                     // Step 2: Add in userProfile: userProfile\{userID}\reviews\{reviewID}
                     val userReviewsCollectionRef =
-                        firestore.collection("userProfiles").document(user?.uid ?: "")
+                        firestore.collection("userProfiles").document(auth.currentUser?.uid ?: "")
                             .collection("reviews").document(reviewID)
                     userReviewsCollectionRef.set(newReview)
                         .addOnSuccessListener {
@@ -244,7 +255,7 @@ class ReviewViewModel : ViewModel() {
                     destinationRef.collection("reviews").document(reviewID)
                         .set(newReviewDocument)
                         .addOnSuccessListener {
-                            // Handle success, if needed
+                            showSnackbarMessage("Review added successfully.")
                         }
                         .addOnFailureListener { e ->
                             // Handle failure, if needed
@@ -274,7 +285,7 @@ class ReviewViewModel : ViewModel() {
 
                 // Step 2: Delete in userProfile: userProfile\{userID}\reviews\{reviewID}
                 val userReviewsCollectionRef =
-                    firestore.collection("userProfiles").document(user?.uid ?: "")
+                    firestore.collection("userProfiles").document(auth.currentUser?.uid ?: "")
                         .collection("reviews").document(reviewId)
                 userReviewsCollectionRef.delete()
                     .addOnSuccessListener {

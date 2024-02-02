@@ -10,7 +10,6 @@ import com.google.firebase.storage.FirebaseStorage
 import group.two.tripplanningapp.compose.trips.Privacy
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.Trip
-import group.two.tripplanningapp.data.TripId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

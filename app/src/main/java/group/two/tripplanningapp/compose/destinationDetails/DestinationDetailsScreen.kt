@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -12,26 +14,35 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import group.two.tripplanningapp.compose.ReviewCard
 import group.two.tripplanningapp.compose.SquaredAsyncImage
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.utilities.getCurrentUserID
 
-// TODO: fix screen flickering when navigating to this screen
+// TODO: fix after add destination the add button should be disabled
 @Composable
 fun DestinationDetailsScreen(
     loadReviews: (String) -> Unit,
@@ -44,7 +55,11 @@ fun DestinationDetailsScreen(
     deleteReview: (String, (String) -> Unit) -> Unit,
     loadDestinationDetails: (String) -> Unit,
     destination: Destination?,
-    createNewReview: (String) -> Unit
+    createNewReview: (String) -> Unit,
+    loadUserTrips: () -> Unit,
+    trips: List<Trip>,
+    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
+    showSnackbarMessage: (String) -> Unit
 ) {
     Log.d("DestinationDetailsScreen", "destinationId: $destinationId")
 
@@ -53,6 +68,7 @@ fun DestinationDetailsScreen(
     LaunchedEffect(key1 = destinationId) {
         loadDestinationDetails(destinationId)
         loadReviews(destinationId)
+        loadUserTrips()
     }
 
     LaunchedEffect(key1 = reviews) {
@@ -96,7 +112,10 @@ fun DestinationDetailsScreen(
                     reviews,
                     getReviewerAvatarAndName,
                     updateReview,
-                    deleteReview
+                    deleteReview,
+                    trips,
+                    addDestinationToTrip,
+                    showSnackbarMessage
                 )
             }
         }
@@ -111,7 +130,10 @@ fun DestinationDetails(
     reviews: List<Review>,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, (String) -> Unit) -> Unit
+    deleteReview: (String, (String) -> Unit) -> Unit,
+    trips: List<Trip>,
+    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
+    showSnackbarMessage: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -146,6 +168,13 @@ fun DestinationDetails(
         Text(
             text = "Average Cost per Person: ${formatCurrency(destination.averageCostPerPersonInCents)}",
             modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        AddDestinationToTripDropdown(
+            destination = destination,
+            trips = trips,
+            addDestinationToTrip = addDestinationToTrip,
+            showSnackbarMessage = showSnackbarMessage
         )
 
         ActivitiesSummary(destination.activities)
@@ -200,11 +229,11 @@ fun Reviews(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit
 ) {
+    Log.d("Reviews", "reviews creator IDs: ${reviews.map { it.creatorID }}")
     Text(text = "Reviews:")
     if (reviews.isEmpty()) {
         Text(text = "No reviews yet.")
     } else {
-
         reviews.forEach { review ->
             ReviewCard(
                 modifier = Modifier.padding(bottom = 8.dp),
@@ -217,6 +246,109 @@ fun Reviews(
                 deleteReview = deleteReview,
                 allowEditing = review.creatorID == getCurrentUserID()
             )
+        }
+    }
+}
+
+@Composable
+fun AddDestinationToTripDropdown(
+    trips: List<Trip>,
+    destination: Destination,
+    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
+    showSnackbarMessage: (String) -> Unit
+) {
+    if (trips.isEmpty()) {
+        return
+    }
+    val (selectedTrip, setSelectedTrip) = remember { mutableStateOf(trips[0]) }
+    val (expanded, setExpanded) = remember { mutableStateOf(false) }
+    Text(text = "Add this destination to trip:")
+    Spacer(modifier = Modifier.padding(8.dp))
+    TripsDropdown(
+        trips = trips,
+        expanded = expanded,
+        setExpanded = setExpanded,
+        selectedTrip = selectedTrip,
+        setSelectedTrip = setSelectedTrip,
+        destination = destination,
+        addDestinationToTrip = addDestinationToTrip,
+        showSnackbarMessage = showSnackbarMessage
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TripsDropdown(
+    trips: List<Trip>,
+    expanded: Boolean,
+    setExpanded: (Boolean) -> Unit,
+    selectedTrip: Trip,
+    setSelectedTrip: (Trip) -> Unit,
+    destination: Destination,
+    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, ()->  Unit) -> Unit,
+    showSnackbarMessage: (String) -> Unit
+) {
+
+    val (isButtonEnabled, setIsButtonEnabled) = remember { mutableStateOf(selectedTrip.destinations.none { it == destination.name }) }
+    Log.d("TripsDropdown", "isButtonEnabled: $isButtonEnabled, selectedTrip: $selectedTrip")
+
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { setExpanded(it) }) {
+        CompositionLocalProvider(LocalTextInputService provides null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 8.dp)
+            ) {
+                TextField(
+                    readOnly = true,
+                    value = selectedTrip.tripName,
+                    onValueChange = {},
+                    label = { Text("Trip") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expanded
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                    modifier = Modifier.menuAnchor()
+                )
+
+                Spacer(modifier = Modifier.padding(8.dp))
+
+                Button(
+                    enabled = isButtonEnabled,
+                    onClick = {
+                        addDestinationToTrip(
+                            trips.indexOf(selectedTrip),
+                            destination,
+                            selectedTrip,
+                            {
+                                showSnackbarMessage("Destination added to trip")
+                                setIsButtonEnabled(false)
+                            },
+                            {
+                                showSnackbarMessage("Failed to add destination to trip")
+                            }
+                        )
+                    }) {
+                    Text("Add")
+                }
+            }
+        }
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { setExpanded(false) },
+        ) {
+            trips.forEach { trip ->
+                DropdownMenuItem(text = {
+                    Text(text = trip.tripName)
+                }, onClick = {
+                    setSelectedTrip(trip)
+                    setIsButtonEnabled(trip.destinations.none { it == destination.name })
+                    setExpanded(false)
+                })
+            }
         }
     }
 }

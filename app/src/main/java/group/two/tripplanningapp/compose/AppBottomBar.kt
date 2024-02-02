@@ -22,8 +22,8 @@ fun navigationWithDestinationPreCheck(
     navBackStackEntry: NavBackStackEntry?
 ) {
     if (navBackStackEntry?.destination?.route != destination) {
-        setCurrentRoute(destination)
         navController.navigate(destination)
+        setCurrentRoute(destination)
     }
 }
 
@@ -46,7 +46,6 @@ fun AppBottomBar(navController: NavController, currentRoute: String, setCurrentR
     )
 
     val zippedList = icons.zip(routes)
-
 
     NavigationBar {
         zippedList.forEachIndexed { _, (icon, route) ->

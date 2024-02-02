@@ -78,7 +78,7 @@ fun CreateTrip(
 
     var tripIndex = 0
     if (TripsViewModel.clickIndex != -1) {
-        for (i in 0 .. TripsViewModel.trips.size - 1) {
+        for (i in 0..<TripsViewModel.trips.size) {
             if (existTrip.tripName == TripsViewModel.trips[i].tripName) {
                 tripIndex = i
                 tripName = existTrip.tripName
