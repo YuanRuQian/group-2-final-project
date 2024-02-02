@@ -302,7 +302,7 @@ class ReviewViewModel : ViewModel() {
     }
 
     // Delete Reviews
-    fun deleteReview(reviewId: String, review: Review, showSnackbarMessage: (String) -> Unit) {
+    fun deleteReview(reviewId: String, review: Review, showSnackbarMessage: (String) -> Unit, onSuccessful: () -> Unit = {}) {
 
         if (reviewId.isEmpty()) {
             showSnackbarMessage("Error deleting review with empty ID.")
@@ -370,12 +370,13 @@ class ReviewViewModel : ViewModel() {
                                                 else -> destinationData.rating
                                             }
                                         firestore.collection("destinations").document(destinationID)
-                                            .update("rating", newRating)
+                                            .update("rating", newRating).addOnCompleteListener {
+                                                showSnackbarMessage("Review deleted successfully.")
+                                                onSuccessful()
+                                                getUserReviews() // refresh the reviews
+                                            }
                                     }
                                 }
-
-                                showSnackbarMessage("Review deleted successfully.")
-                                getUserReviews() // refresh the reviews
                             }
                         }
                         .addOnFailureListener { exception ->

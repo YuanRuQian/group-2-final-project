@@ -42,8 +42,6 @@ import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.utilities.getCurrentUserID
 
-// TODO: fix the star stats updates after deleting a review
-// TODO: somtimes addDestinationToTrip fails to add the destination to the trip without any error message
 @Composable
 fun DestinationDetailsScreen(
     loadReviews: (String) -> Unit,
@@ -53,7 +51,7 @@ fun DestinationDetailsScreen(
     reviews: List<Review>,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, Review, (String) -> Unit) -> Unit,
+    deleteReview: (String, Review, (String) -> Unit, () -> Unit) -> Unit,
     loadDestinationDetails: (String) -> Unit,
     destination: Destination?,
     createNewReview: (String) -> Unit,
@@ -117,7 +115,8 @@ fun DestinationDetailsScreen(
                     trips,
                     addDestinationToTrip,
                     showSnackbarMessage,
-                    loadReviews
+                    loadReviews,
+                    loadDestinationDetails
                 )
             }
         }
@@ -132,11 +131,12 @@ fun DestinationDetails(
     reviews: List<Review>,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, Review, (String) -> Unit) -> Unit,
+    deleteReview: (String, Review, (String) -> Unit, () -> Unit) -> Unit,
     trips: List<Trip>,
     addDestinationToTrip: (Int, Destination, Trip, () -> Unit, () -> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit,
-    loadReviews: (String) -> Unit
+    loadReviews: (String) -> Unit,
+    loadDestinationDetails: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -192,6 +192,7 @@ fun DestinationDetails(
             deleteReview = deleteReview,
             destination = destination,
             loadReviews = loadReviews,
+            loadDestinationDetails = loadDestinationDetails
         )
     }
 }
@@ -234,8 +235,15 @@ fun Reviews(
     formatTimestamp: (Long) -> String,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, Review, (String) -> Unit) -> Unit
+    deleteReview: (String, Review, (String) -> Unit, () -> Unit) -> Unit,
+    loadDestinationDetails: (String) -> Unit
 ) {
+
+    fun reloadData() {
+        loadReviews(destination.id)
+        loadDestinationDetails(destination.id)
+    }
+
     Log.d("Reviews", "reviews: $reviews")
     Text(text = "Reviews:")
     if (reviews.isEmpty()) {
@@ -252,8 +260,9 @@ fun Reviews(
                 updateReview = updateReview,
                 deleteReview = { reviewId, review, showSnackbarMessage ->
                     run {
-                        deleteReview(reviewId, review, showSnackbarMessage)
-                        loadReviews(destination.id)
+                        deleteReview(reviewId, review, showSnackbarMessage) {
+                            reloadData()
+                        }
                     }
                 },
                 allowEditing = review.creatorID == getCurrentUserID()

@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.storage
 import group.two.tripplanningapp.data.Destination
+import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.data.Trips
 import group.two.tripplanningapp.utilities.getCurrentUserID
