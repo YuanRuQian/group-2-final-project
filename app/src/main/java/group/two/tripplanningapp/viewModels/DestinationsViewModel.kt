@@ -90,20 +90,32 @@ class DestinationsViewModel : ViewModel() {
 
     private fun sortDestinationsBySortOption(destinations: List<Destination>): List<Destination> {
         return when (_selectedDestinationSortOption) {
-            DestinationSortOption.Name -> {
+            DestinationSortOption.NameDesc -> {
                 destinations.sortedByDescending { it.name }
             }
 
-            DestinationSortOption.Likes -> {
+            DestinationSortOption.LikesDesc -> {
                 destinations.sortedByDescending { it.likes }
             }
 
-            DestinationSortOption.Rating -> {
+            DestinationSortOption.RatingDesc -> {
                 destinations.sortedByDescending { calculateAverageRating(it.rating) }
             }
 
-            else -> {
+            DestinationSortOption.NameAsc -> {
                 destinations.sortedBy { it.name }
+            }
+
+            DestinationSortOption.LikesAsc -> {
+                destinations.sortedBy { it.likes }
+            }
+
+            DestinationSortOption.RatingAsc -> {
+                destinations.sortedBy { calculateAverageRating(it.rating) }
+            }
+
+            else -> {
+                destinations
             }
         }
     }
