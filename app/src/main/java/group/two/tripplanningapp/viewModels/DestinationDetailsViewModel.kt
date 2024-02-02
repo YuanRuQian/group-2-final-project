@@ -96,7 +96,8 @@ class DestinationDetailsViewModel : ViewModel() {
         tripIndexInTripList: Int,
         destination: Destination,
         trip: Trip,
-        showSnackbarMessage: (String) -> Unit
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
     ) {
         viewModelScope.launch {
             val tripId = _db.collection("userProfiles").document(getCurrentUserID()).get().await()
@@ -109,10 +110,10 @@ class DestinationDetailsViewModel : ViewModel() {
             )
             _db.collection("trips").document(tripId).set(newTrips).addOnCompleteListener {
                 if (it.isSuccessful) {
-                    showSnackbarMessage("Destination added to trip")
+                    onSuccess()
                     _userTrips.value = newTrips
                 } else {
-                    showSnackbarMessage("Failed to add destination to trip")
+                    onFailure()
                 }
             }
         }

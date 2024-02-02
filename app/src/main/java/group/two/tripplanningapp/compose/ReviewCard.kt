@@ -1,5 +1,6 @@
 package group.two.tripplanningapp.compose
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +68,11 @@ fun ReviewCard(
     val (reviewerAvatarURL, setReviewerAvatarURL) = remember { mutableStateOf("") }
     val (reviewerName, setReviewerName) = remember { mutableStateOf("") }
 
-    getReviewerAvatarAndName(review.creatorID, setReviewerAvatarURL, setReviewerName)
+    LaunchedEffect(key1 = review.creatorID) {
+        getReviewerAvatarAndName(review.creatorID, setReviewerAvatarURL, setReviewerName)
+    }
+
+    Log.d("ReviewCard", "reviewerAvatarURL: $reviewerAvatarURL, reviewerName: $reviewerName")
 
     Card(
         modifier = modifier

@@ -58,7 +58,7 @@ fun DestinationDetailsScreen(
     createNewReview: (String) -> Unit,
     loadUserTrips: () -> Unit,
     trips: List<Trip>,
-    addDestinationToTrip: (Int, Destination, Trip, (String) -> Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
     Log.d("DestinationDetailsScreen", "destinationId: $destinationId")
@@ -132,7 +132,7 @@ fun DestinationDetails(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit,
     trips: List<Trip>,
-    addDestinationToTrip: (Int, Destination, Trip, (String) -> Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
     Column(
@@ -229,11 +229,11 @@ fun Reviews(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit
 ) {
+    Log.d("Reviews", "reviews creator IDs: ${reviews.map { it.creatorID }}")
     Text(text = "Reviews:")
     if (reviews.isEmpty()) {
         Text(text = "No reviews yet.")
     } else {
-
         reviews.forEach { review ->
             ReviewCard(
                 modifier = Modifier.padding(bottom = 8.dp),
@@ -254,7 +254,7 @@ fun Reviews(
 fun AddDestinationToTripDropdown(
     trips: List<Trip>,
     destination: Destination,
-    addDestinationToTrip: (Int, Destination, Trip, (String) -> Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
     if (trips.isEmpty()) {
@@ -286,18 +286,12 @@ fun TripsDropdown(
     selectedTrip: Trip,
     setSelectedTrip: (Trip) -> Unit,
     destination: Destination,
-    addDestinationToTrip: (Int, Destination, Trip, (String) -> Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, ()->  Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
 
-    val isButtonEnabled = !selectedTrip.destinations.any { it == destination.name }
-
-    selectedTrip.destinations.forEach {
-        Log.d(
-            "TripsDropdown",
-            "Destination: $it, enabled: $isButtonEnabled, destination: ${destination.name}"
-        )
-    }
+    val (isButtonEnabled, setIsButtonEnabled) = remember { mutableStateOf(selectedTrip.destinations.none { it == destination.name }) }
+    Log.d("TripsDropdown", "isButtonEnabled: $isButtonEnabled, selectedTrip: $selectedTrip")
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { setExpanded(it) }) {
         CompositionLocalProvider(LocalTextInputService provides null) {
@@ -328,7 +322,13 @@ fun TripsDropdown(
                             trips.indexOf(selectedTrip),
                             destination,
                             selectedTrip,
-                            showSnackbarMessage
+                            {
+                                showSnackbarMessage("Destination added to trip")
+                                setIsButtonEnabled(false)
+                            },
+                            {
+                                showSnackbarMessage("Failed to add destination to trip")
+                            }
                         )
                     }) {
                     Text("Add")
@@ -345,6 +345,7 @@ fun TripsDropdown(
                     Text(text = trip.tripName)
                 }, onClick = {
                     setSelectedTrip(trip)
+                    setIsButtonEnabled(trip.destinations.none { it == destination.name })
                     setExpanded(false)
                 })
             }
