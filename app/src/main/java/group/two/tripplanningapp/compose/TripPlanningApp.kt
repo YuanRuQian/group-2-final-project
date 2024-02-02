@@ -20,6 +20,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import group.two.tripplanningapp.compose.destinationDetails.CreateNewReviewScreen
 import group.two.tripplanningapp.compose.destinationDetails.DestinationDetailsScreen
 import group.two.tripplanningapp.compose.home.HomeScreen
 import group.two.tripplanningapp.compose.profile.ProfileScreen
@@ -46,7 +47,7 @@ fun TripPlanningApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val (openAlertDialog, setOpenAlertDialog) = remember { mutableStateOf(false) }
     val (alertDialogMessage, setAlertDialogMessage) = remember { mutableStateOf("") }
-    val( currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
+    val (currentRoute, setCurrentRoute) = remember { mutableStateOf(Screen.Home.route) }
 
     fun logout() {
         reviewViewModel.clearData()
@@ -86,9 +87,13 @@ fun TripPlanningApp(
             )
         },
         bottomBar = {
-            if(isLoggedIn.value == true) {
+            if (isLoggedIn.value == true) {
                 setCurrentRoute(Screen.Home.route)
-                AppBottomBar(navController = navController, currentRoute = currentRoute, setCurrentRoute = setCurrentRoute)
+                AppBottomBar(
+                    navController = navController,
+                    currentRoute = currentRoute,
+                    setCurrentRoute = setCurrentRoute
+                )
             } else {
                 setCurrentRoute(Screen.Login.route)
             }
@@ -212,7 +217,7 @@ fun TripPlanningNavHost(
 
         composable(route = Screen.CreateTrip.route) {
             CreateTrip(
-                navigateToTripsScreen= {
+                navigateToTripsScreen = {
                     navController.navigate(Screen.Trips.route)
                 }
             )
@@ -237,7 +242,7 @@ fun TripPlanningNavHost(
         composable(
             route = Screen.DestinationDetails.route,
             arguments = Screen.DestinationDetails.navArguments,
-        ) {
+        ) { it ->
             DestinationDetailsScreen(
                 loadReviews = reviewViewModel::getDestinationReviews,
                 destinationId = it.arguments?.getString("destinationId") ?: "",
@@ -248,7 +253,28 @@ fun TripPlanningNavHost(
                 updateReview = reviewViewModel::updateReview,
                 deleteReview = reviewViewModel::deleteReview,
                 loadDestinationDetails = destinationDetailsViewModel::loadDestinationDetails,
-                destination = destination.value
+                destination = destination.value,
+                createNewReview = { destinationId ->
+                    navController.navigate(
+                        Screen.CreateNewReview.createRoute(
+                            destinationId = destinationId
+                        )
+                    )
+                }
+            )
+        }
+
+        composable(
+            route = Screen.CreateNewReview.route,
+            arguments = Screen.CreateNewReview.navArguments,
+        ) {
+            CreateNewReviewScreen(
+                destinationId = it.arguments?.getString("destinationId") ?: "",
+                createReview = reviewViewModel::addReview,
+                showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
+                navigateBack = { navController.popBackStack() },
+                loadReviewsData = reviewViewModel::getDestinationReviews,
+                loadCurrentDestination = destinationDetailsViewModel::loadDestinationDetails
             )
         }
     }

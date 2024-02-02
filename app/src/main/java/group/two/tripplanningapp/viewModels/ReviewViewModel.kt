@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.google.firebase.Timestamp
@@ -12,11 +13,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.data.Review
+import group.two.tripplanningapp.data.ReviewPostData
 import group.two.tripplanningapp.data.UserProfile
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-class ReviewViewModel : ViewModel()  {
+class ReviewViewModel : ViewModel() {
     private val TAG = "TripApppDebug_ReviewViewModel"
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -25,7 +30,7 @@ class ReviewViewModel : ViewModel()  {
     private val storage: FirebaseStorage = FirebaseStorage.getInstance()
     private val defaultAvatarURL = mutableStateOf("")
 
-    private val yourReviewIds : MutableState<List<String>> = mutableStateOf(emptyList())
+    private val yourReviewIds: MutableState<List<String>> = mutableStateOf(emptyList())
 
     private val _yourReviews: MutableState<List<Review>> = mutableStateOf(emptyList())
     val yourReviews: MutableState<List<Review>> get() = _yourReviews
@@ -38,24 +43,27 @@ class ReviewViewModel : ViewModel()  {
         getDefaultAvatar()
     }
 
-    private fun getDefaultAvatar(){
+    private fun getDefaultAvatar() {
         val defaultAvatarUri = "/images/userProfiles/avatar_default.webp"
         val imageRef: StorageReference = storage.reference.child(defaultAvatarUri)
-        imageRef.downloadUrl.addOnSuccessListener{uri ->
+        imageRef.downloadUrl.addOnSuccessListener { uri ->
             defaultAvatarURL.value = uri.toString()
             Log.d(TAG, "getProfileImage: ${defaultAvatarURL.value}")
         }
     }
 
-    fun getReviewerAvatarAndName(userID:String, setAvatar: (String)->Unit, setUsername: (String) -> Unit){
+    fun getReviewerAvatarAndName(
+        userID: String,
+        setAvatar: (String) -> Unit,
+        setUsername: (String) -> Unit
+    ) {
         val userDocumentRef = firestore.collection("userProfiles").document(userID)
         userDocumentRef.get().addOnSuccessListener { documentSnapshot ->
             val user = documentSnapshot.toObject(UserProfile::class.java)
             user?.let {
-
                 Log.d("TripApppDebug", "it.avatar: ${it.avatar}")
-                setAvatar(if (it.avatar!="null") it.avatar else defaultAvatarURL.value)
-                setUsername(if (it.userName!="null") it.userName else "Unknown User")
+                setAvatar(if (it.avatar != "null") it.avatar else defaultAvatarURL.value)
+                setUsername(if (it.userName != "null") it.userName else "Unknown User")
             }
         }.addOnFailureListener { exception ->
             Log.e(TAG, "Error Avatar And Name for user $userID: $exception")
@@ -65,7 +73,7 @@ class ReviewViewModel : ViewModel()  {
     // User Reviews
     private fun getUserReviews() {
         // Get Review IDs
-        if (user==null) return
+        if (user == null) return
 
         val reviewsCollection = firestore.collection("userProfiles").document(user.uid)
             .collection("reviews")
@@ -85,7 +93,7 @@ class ReviewViewModel : ViewModel()  {
         }
     }
 
-    fun getDestinationReviews(destinationID:String){
+    fun getDestinationReviews(destinationID: String) {
         _curDesReviews.value = emptyList()
         // Get Review IDs
         val reviewsCollection = firestore.collection("destinations").document(destinationID)
@@ -105,6 +113,7 @@ class ReviewViewModel : ViewModel()  {
             fetchReviews(destinationReviewIds, _curDesReviews)
         }
     }
+
     private fun fetchReviews(reviewIds: List<String>, toBeFetched: MutableState<List<Review>>) {
         // Initialize an empty list to store fetched reviews
         val fetchedReviews = mutableListOf<Review>()
@@ -117,9 +126,9 @@ class ReviewViewModel : ViewModel()  {
                 val review = documentSnapshot.toObject(Review::class.java)
                 review?.let {
                     // Add the fetched review to the list
-                    it.reviewId =reviewId
+                    it.reviewId = reviewId
                     // Allow edit when comment it is yours
-                    if (it.creatorID==user?.uid.toString()) it.editable = true
+                    if (it.creatorID == user?.uid.toString()) it.editable = true
                     fetchedReviews.add(it)
                 }
 
@@ -158,6 +167,102 @@ class ReviewViewModel : ViewModel()  {
             }
     }
 
+    fun addReview(
+        destinationID: String,
+        content: String,
+        rating: Int,
+        showSnackbarMessage: (String) -> Unit
+    ) {
+        viewModelScope.launch() {
+
+            val reviewDocumentRef = firestore.collection("reviews").document()
+
+            val destination = firestore.collection("destinations").document(destinationID)
+                .get().await()
+
+            val destinationName = destination.getString("name") ?: "Unknown Destination"
+
+            val newReview = ReviewPostData(
+                content = content,
+                creatorID = user?.uid ?: "",
+                destination = destinationName,
+                rating = rating
+            )
+
+            reviewDocumentRef.set(newReview)
+                .addOnSuccessListener {
+                    // Step 1: Add in reviews collection: reviews\{reviewID}
+                    val reviewID = reviewDocumentRef.id
+
+                    // Step 2: Add in userProfile: userProfile\{userID}\reviews\{reviewID}
+                    val userReviewsCollectionRef =
+                        firestore.collection("userProfiles").document(user?.uid ?: "")
+                            .collection("reviews").document(reviewID)
+                    userReviewsCollectionRef.set(newReview)
+                        .addOnSuccessListener {
+                            showSnackbarMessage("Review added successfully.")
+                            getUserReviews() // refresh the reviews
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e(TAG, "Error adding review: $exception")
+                            showSnackbarMessage("Error adding review.")
+                        }
+
+                    // Step 3: update destination rating in destinations collection
+                    val destinationDocumentRef =
+                        firestore.collection("destinations").document(destinationID)
+                    destinationDocumentRef.get().addOnSuccessListener { documentSnapshot ->
+                        documentSnapshot.toObject(Destination::class.java)?.let {
+                            val newRating = it.copy(
+                                rating =
+                                when (rating) {
+                                    1 -> it.rating.copy(oneStar = it.rating.oneStar + 1)
+                                    2 -> it.rating.copy(twoStars = it.rating.twoStars + 1)
+                                    3 -> it.rating.copy(threeStars = it.rating.threeStars + 1)
+                                    4 -> it.rating.copy(fourStars = it.rating.fourStars + 1)
+                                    5 -> it.rating.copy(fiveStars = it.rating.fiveStars + 1)
+                                    else -> it.rating
+                                }
+                            )
+                            destinationDocumentRef.set(newRating)
+                        }
+                    }.addOnFailureListener { exception ->
+                        Log.e(TAG, "Error getting destination: $exception")
+                    }
+
+                    // Step 4: Add review to destination's reviews sub-collection, with a custom document ID
+                    val destinationRef =
+                        firestore.collection("destinations").document(destinationID)
+
+                    // Use a fixed document ID for the review within the "reviews" sub-collection
+
+                    val newReviewDocument = hashMapOf(
+                        "documentId" to reviewID
+                    )
+
+// Add the review document to the "reviews" sub-collection
+                    destinationRef.collection("reviews").document(reviewID)
+                        .set(newReviewDocument)
+                        .addOnSuccessListener {
+                            // Handle success, if needed
+                        }
+                        .addOnFailureListener { e ->
+                            // Handle failure, if needed
+                            Log.e(
+                                "Firestore",
+                                "failed to add review to destination's reviews sub-collection",
+                                e
+                            )
+                        }
+
+                }
+                .addOnFailureListener { exception ->
+                    Log.e(TAG, "Error adding review: $exception")
+                    showSnackbarMessage("Error adding review.")
+                }
+        }
+    }
+
     // Delete Reviews
     fun deleteReview(reviewId: String, showSnackbarMessage: (String) -> Unit) {
 
@@ -192,9 +297,14 @@ class ReviewViewModel : ViewModel()  {
     // Function to get sorted reviews based on the selected sorting option
     fun profileSortReviews(sortOption: ProfileReviewSortOptions) {
         when (sortOption) {
-            ProfileReviewSortOptions.Date -> _yourReviews.value = yourReviews.value.sortedByDescending { it.timeEdited}
-            ProfileReviewSortOptions.Location -> _yourReviews.value =yourReviews.value.sortedBy { it.destination }
-            ProfileReviewSortOptions.Rating -> _yourReviews.value =yourReviews.value.sortedByDescending { it.rating }
+            ProfileReviewSortOptions.Date -> _yourReviews.value =
+                yourReviews.value.sortedByDescending { it.timeEdited }
+
+            ProfileReviewSortOptions.Location -> _yourReviews.value =
+                yourReviews.value.sortedBy { it.destination }
+
+            ProfileReviewSortOptions.Rating -> _yourReviews.value =
+                yourReviews.value.sortedByDescending { it.rating }
         }
     }
 

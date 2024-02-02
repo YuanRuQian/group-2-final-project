@@ -19,6 +19,8 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -41,27 +43,36 @@ fun DestinationDetailsScreen(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit,
     loadDestinationDetails: (String) -> Unit,
-    destination: Destination?
+    destination: Destination?,
+    createNewReview: (String) -> Unit
 ) {
     Log.d("DestinationDetailsScreen", "destinationId: $destinationId")
+
+    val (canCreateNewReview, setCanCreateNewReview) = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = destinationId) {
         loadDestinationDetails(destinationId)
         loadReviews(destinationId)
     }
 
+    LaunchedEffect(key1 = reviews) {
+        setCanCreateNewReview(reviews.none { it.creatorID == getCurrentUserID() })
+    }
+
     Log.d("DestinationDetailsScreen", "destination: $destination")
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                  // TODO: add review
-                },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .size(56.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            if (canCreateNewReview) {
+                FloatingActionButton(
+                    onClick = {
+                        createNewReview(destinationId)
+                    },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(56.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                }
             }
         }
     ) {
@@ -90,8 +101,6 @@ fun DestinationDetailsScreen(
             }
         }
     }
-
-
 }
 
 @Composable

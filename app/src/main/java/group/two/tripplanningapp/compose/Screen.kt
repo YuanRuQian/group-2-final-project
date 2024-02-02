@@ -36,6 +36,19 @@ sealed class Screen(
     ) {
         fun createRoute(destinationId: String) = "Destination Details/$destinationId"
     }
+
+    data object CreateNewReview : Screen(
+        route = "Create New Review/{destinationId}",
+        displayName = "Create New Review",
+        navArguments =
+        listOf(
+            navArgument("destinationId") {
+                type = NavType.StringType
+            },
+        ),
+    ) {
+        fun createRoute(destinationId: String) = "Create New Review/$destinationId"
+    }
 }
 
 
