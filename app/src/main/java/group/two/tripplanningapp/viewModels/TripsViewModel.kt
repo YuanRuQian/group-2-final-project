@@ -56,8 +56,10 @@ class TripsViewModel : ViewModel() {
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
             val user = auth.currentUser
+                ?: // If the user is not logged in, return
+                return@launch
 
-            Log.d("Jerry Id is??", user!!.uid)
+            Log.d("Jerry Id is??", user.uid)
 
             // Use Firebase API to fetch trips data
             // Replace the following code with your actual Firebase logic

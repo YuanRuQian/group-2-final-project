@@ -53,6 +53,7 @@ import group.two.tripplanningapp.viewModels.ProfileViewModel
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.style.TextAlign
 import group.two.tripplanningapp.compose.ReviewCard
 import group.two.tripplanningapp.utilities.ProfileReviewSortOptions
@@ -63,9 +64,13 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel = viewModel(),
     reviewViewModel: ReviewViewModel,
     showSnackbarMessage: (String) -> Unit,
-    logout:()->Unit,
+    logout: () -> Unit,
     formatTimestamp: (Long) -> String
 ) {
+    LaunchedEffect(key1 = true) {
+        reviewViewModel.getUserReviews()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -97,11 +102,9 @@ fun Profile(
     val userName by profileViewModel.displayName
     val userReviews by reviewViewModel.yourReviews
 
-
     var isNameEditing by remember { mutableStateOf(false) }
     var deleteAccountClicked by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf(userName) }
-
 
     var selectedSortOption by remember { mutableStateOf(ProfileReviewSortOptions.Date) }
 
@@ -113,7 +116,8 @@ fun Profile(
             uri?.let {
                 profileViewModel.updateProfileImage(
                     imageUri = it,
-                    showSnackbarMessage = showSnackbarMessage)
+                    showSnackbarMessage = showSnackbarMessage
+                )
             }
         }
 
@@ -155,7 +159,7 @@ fun Profile(
             Button(
                 onClick = {
                     // Handle delete account action
-                          deleteAccountClicked=true
+                    deleteAccountClicked = true
                 },
                 contentPadding = PaddingValues(4.dp),
                 shape = MaterialTheme.shapes.medium,
@@ -170,9 +174,9 @@ fun Profile(
                     fontSize = 12.sp
                 )
             }
-            if (deleteAccountClicked){
+            if (deleteAccountClicked) {
                 AlertDialog(
-                    onDismissRequest = { deleteAccountClicked=false},
+                    onDismissRequest = { deleteAccountClicked = false },
                     title = {
                         Text("WARNING")
                     },
@@ -206,7 +210,6 @@ fun Profile(
                 )
             }
         }
-
 
 
         // Display Name
@@ -284,11 +287,15 @@ fun Profile(
 
 
 
-        Text("Your Reviews", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier
-            .padding(top = 16.dp)
-            .align(Alignment.Start))
-        Row(modifier = Modifier.align(Alignment.Start),
-            verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "Your Reviews", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier
+                .padding(top = 16.dp)
+                .align(Alignment.Start)
+        )
+        Row(
+            modifier = Modifier.align(Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("Sort By: ")
             ToggleButton(
                 text = "Date",
@@ -317,20 +324,20 @@ fun Profile(
         }
 
         // Reviews
-        LazyColumn {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(userReviews) { review ->
-                    ReviewCard(
-                        review = review,
-                        showSnackbarMessage = showSnackbarMessage,
-                        showReviewCreator = true,
-                        formatTimestamp = formatTimestamp,
-                        getReviewerAvatarAndName = reviewViewModel::getReviewerAvatarAndName,
-                        updateReview = reviewViewModel::updateReview,
-                        deleteReview = reviewViewModel::deleteReview
-                    )
+                ReviewCard(
+                    review = review,
+                    showSnackbarMessage = showSnackbarMessage,
+                    showReviewCreator = true,
+                    formatTimestamp = formatTimestamp,
+                    getReviewerAvatarAndName = reviewViewModel::getReviewerAvatarAndName,
+                    updateReview = reviewViewModel::updateReview,
+                    deleteReview = reviewViewModel::deleteReview
+                )
             }
-            if (userReviews.isEmpty()){
-                item{
+            if (userReviews.isEmpty()) {
+                item {
                     Text(
                         text = "No Reviews Found",
                         modifier = Modifier

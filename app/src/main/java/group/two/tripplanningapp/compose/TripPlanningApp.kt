@@ -51,6 +51,7 @@ fun TripPlanningApp(
 
     fun logout() {
         reviewViewModel.clearData()
+        destinationDetailsViewModel.clearData()
         userAuthViewModel.signOut(
             navigateToLoginScreen = {
                 navController.navigate(Screen.Login.route) {

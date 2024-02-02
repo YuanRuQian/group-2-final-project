@@ -42,7 +42,7 @@ import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.utilities.getCurrentUserID
 
-// TODO: fix after add destination the add button should be disabled
+// TODO: somtimes addDestinationToTrip fails to add the destination to the trip without any error message
 @Composable
 fun DestinationDetailsScreen(
     loadReviews: (String) -> Unit,
@@ -229,14 +229,14 @@ fun Reviews(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit
 ) {
-    Log.d("Reviews", "reviews creator IDs: ${reviews.map { it.creatorID }}")
+    Log.d("Reviews", "reviews: $reviews")
     Text(text = "Reviews:")
     if (reviews.isEmpty()) {
         Text(text = "No reviews yet.")
     } else {
         reviews.forEach { review ->
             ReviewCard(
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(8.dp),
                 review = review,
                 showSnackbarMessage = {},
                 showReviewCreator = false,
