@@ -6,13 +6,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -35,39 +43,62 @@ fun DestinationDetailsScreen(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit,
     loadDestinationDetails: (String) -> Unit,
-    destination: Destination?
+    destination: Destination?,
+    createNewReview: (String) -> Unit
 ) {
     Log.d("DestinationDetailsScreen", "destinationId: $destinationId")
+
+    val (canCreateNewReview, setCanCreateNewReview) = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = destinationId) {
         loadDestinationDetails(destinationId)
         loadReviews(destinationId)
     }
 
-    Log.d("DestinationDetailsScreen", "destination: $destination")
+    LaunchedEffect(key1 = reviews) {
+        setCanCreateNewReview(reviews.none { it.creatorID == getCurrentUserID() })
+    }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(
-                rememberScrollState()
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Log.d("DestinationDetailsScreen", "destination: $destination")
+    Scaffold(
+        floatingActionButton = {
+            if (canCreateNewReview) {
+                FloatingActionButton(
+                    onClick = {
+                        createNewReview(destinationId)
+                    },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(56.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                }
+            }
+        }
     ) {
-        if (destination == null) {
-            Text(text = "Loading...")
-        } else {
-            DestinationDetails(
-                destination,
-                formatCurrency,
-                formatTimestamp,
-                reviews,
-                getReviewerAvatarAndName,
-                updateReview,
-                deleteReview
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .verticalScroll(
+                    rememberScrollState()
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (destination == null) {
+                Text(text = "Loading...")
+            } else {
+                DestinationDetails(
+                    destination,
+                    formatCurrency,
+                    formatTimestamp,
+                    reviews,
+                    getReviewerAvatarAndName,
+                    updateReview,
+                    deleteReview
+                )
+            }
         }
     }
 }
