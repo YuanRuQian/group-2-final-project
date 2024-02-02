@@ -127,7 +127,7 @@ class ProfileViewModel : ViewModel() {
 
         // Step 1: Delete all reviews by the user in database
         reviewViewModel.yourReviews.value.forEach{ eachReview ->
-            reviewViewModel.deleteReview(eachReview.reviewId, showSnackbarMessage = {Log.e(TAG, "Delete Review: $eachReview")})
+            reviewViewModel.deleteReview(eachReview.reviewId, eachReview, showSnackbarMessage = {Log.e(TAG, "Delete Review: $eachReview")})
         }
 
         // Step 2: Delete user profile in data base

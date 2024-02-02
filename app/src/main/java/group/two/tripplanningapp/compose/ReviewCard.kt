@@ -55,7 +55,7 @@ fun ReviewCard(
     formatTimestamp: (Long) -> String,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
     updateReview: (String, String, (String) -> Unit) -> Unit,
-    deleteReview: (String, (String) -> Unit) -> Unit,
+    deleteReview: (String, Review, (String) -> Unit) -> Unit,
     allowEditing: Boolean = true
 ) {
     var isEditing by remember { mutableStateOf(false) }
@@ -225,6 +225,7 @@ fun ReviewCard(
                         } else if (deleteClicked) {
                             deleteReview(
                                 review.reviewId,
+                                review,
                                 showSnackbarMessage
                             )
                             deleteClicked = false

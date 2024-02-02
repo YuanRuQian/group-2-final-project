@@ -83,8 +83,8 @@ class ReviewViewModel : ViewModel() {
     }
 
     // User Reviews
-  fun getUserReviews() {
-         Log.d(TAG, "getUserReviews: ")
+    fun getUserReviews() {
+        Log.d(TAG, "getUserReviews: ")
         // Get Review IDs
         if (auth.currentUser == null) {
             return
@@ -204,7 +204,8 @@ class ReviewViewModel : ViewModel() {
         destinationID: String,
         content: String,
         rating: Int,
-        showSnackbarMessage: (String) -> Unit
+        showSnackbarMessage: (String) -> Unit,
+        onSuccessful: () -> Unit
     ) {
         viewModelScope.launch {
 
@@ -270,6 +271,7 @@ class ReviewViewModel : ViewModel() {
                                 destinationRef.collection("reviews").document(reviewID)
                                     .set(newReviewDocument)
                                     .addOnSuccessListener {
+                                        onSuccessful()
                                         showSnackbarMessage("Review added successfully.")
                                     }
                                     .addOnFailureListener { e ->
@@ -291,8 +293,6 @@ class ReviewViewModel : ViewModel() {
                         }
 
 
-
-
                 }
                 .addOnFailureListener { exception ->
                     Log.e(TAG, "Error adding review: $exception")
@@ -302,39 +302,92 @@ class ReviewViewModel : ViewModel() {
     }
 
     // Delete Reviews
-    fun deleteReview(reviewId: String, showSnackbarMessage: (String) -> Unit) {
+    fun deleteReview(reviewId: String, review: Review, showSnackbarMessage: (String) -> Unit) {
 
-        if(reviewId.isEmpty()) {
+        if (reviewId.isEmpty()) {
             showSnackbarMessage("Error deleting review with empty ID.")
             return
         }
 
         // Step 1: Delete in reviews collection: reviews\{reviewID}
-        val reviewDocumentRef =
-            firestore.collection("reviews").document(reviewId)
-        reviewDocumentRef.delete()
-            .addOnSuccessListener {
+        viewModelScope.launch {
+            firestore.collection("reviews").document(reviewId).delete()
+                .addOnSuccessListener {
+                    // Step 2: Delete in userProfile: userProfile\{userID}\reviews\{reviewID}
+                    val userReviewsCollectionRef =
+                        firestore.collection("userProfiles").document(auth.currentUser?.uid ?: "")
+                            .collection("reviews").document(reviewId)
+                    userReviewsCollectionRef.delete()
+                        .addOnSuccessListener {
 
-                // Step 2: Delete in userProfile: userProfile\{userID}\reviews\{reviewID}
-                val userReviewsCollectionRef =
-                    firestore.collection("userProfiles").document(auth.currentUser?.uid ?: "")
-                        .collection("reviews").document(reviewId)
-                userReviewsCollectionRef.delete()
-                    .addOnSuccessListener {
+                            // step 3: update destination rating in destinations collection
+                            val destinationDocumentRef =
+                                firestore.collection("destinations")
+                                    .whereEqualTo("name", review?.destination)
+                            destinationDocumentRef.get().addOnSuccessListener { documentSnapshot ->
+                                documentSnapshot.documents.forEach { destination ->
+                                    val destinationID = destination.id
+                                    val destinationData =
+                                        destination.toObject(Destination::class.java)
+                                    if (destinationData != null) {
+                                        val newRating =
+                                            when (review?.rating) {
+                                                1 -> destinationData.rating.copy(
+                                                    oneStar = maxOf(
+                                                        destinationData.rating.oneStar - 1,
+                                                        0
+                                                    )
+                                                )
 
-                        // Post Deletions
-                        showSnackbarMessage("Review deleted successfully.")
-                        getUserReviews() // refresh the reviews
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e(TAG, "Error deleting review: $exception")
-                        showSnackbarMessage("Error deleting review.")
-                    }
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Error deleting review: $exception")
-                showSnackbarMessage("Error deleting review.")
-            }
+                                                2 -> destinationData.rating.copy(
+                                                    twoStars = maxOf(
+                                                        destinationData.rating.twoStars - 1,
+                                                        0
+                                                    )
+                                                )
+
+                                                3 -> destinationData.rating.copy(
+                                                    threeStars = maxOf(
+                                                        destinationData.rating.threeStars - 1,
+                                                        0
+                                                    )
+                                                )
+
+                                                4 -> destinationData.rating.copy(
+                                                    fourStars = maxOf(
+                                                        destinationData.rating.fourStars - 1,
+                                                        0
+                                                    )
+                                                )
+
+                                                5 -> destinationData.rating.copy(
+                                                    fiveStars = maxOf(
+                                                        destinationData.rating.fiveStars - 1,
+                                                        0
+                                                    )
+                                                )
+
+                                                else -> destinationData.rating
+                                            }
+                                        firestore.collection("destinations").document(destinationID)
+                                            .update("rating", newRating)
+                                    }
+                                }
+
+                                showSnackbarMessage("Review deleted successfully.")
+                                getUserReviews() // refresh the reviews
+                            }
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e(TAG, "Error deleting review: $exception")
+                            showSnackbarMessage("Error deleting review.")
+                        }
+                }
+                .addOnFailureListener { exception ->
+                    Log.e(TAG, "Error deleting review: $exception")
+                    showSnackbarMessage("Error deleting review.")
+                }
+        }
     }
 
     // Function to get sorted reviews based on the selected sorting option
