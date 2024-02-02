@@ -2,19 +2,19 @@ package group.two.tripplanningapp.data
 
 import group.two.tripplanningapp.compose.trips.Privacy
 
-data class Trip(
-    var tripName: String,
-    var numberOfPeople: Int,
-    var privacy: Privacy, // Assuming Privacy is an enum class with Private and Public options
-    var destinations: List<String>
+data class Trips(
+    val trips: List<Trip> = emptyList()
 )
 
-data class TripId(
-    var id: String
+data class Trip(
+    var tripName: String = "",
+    var numberOfPeople: Int = 0,
+    var privacy: Privacy = Privacy.Private,
+    var destinations: List<String> = emptyList(),
 )
 
 data class TripFields(
-    var tripName: String,
-    var numberOfPeople: Int,
-    var privacy: Boolean
+    var tripName: String = "",
+    var numberOfPeople: Int = 0,
+    var privacy: Boolean = false,
 )

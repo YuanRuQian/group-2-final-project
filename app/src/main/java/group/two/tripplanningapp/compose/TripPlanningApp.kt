@@ -153,6 +153,8 @@ fun TripPlanningNavHost(
     val destination = destinationDetailsViewModel.destination.collectAsState()
     val localeConstantsData = userAuthViewModel.localeConstants.collectAsState()
     val localeConstants = localeConstantsData.value
+    val userTripsData = destinationDetailsViewModel.userTrips.collectAsState()
+    val userTrips = userTripsData.value
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(route = Screen.Login.route) {
@@ -261,7 +263,11 @@ fun TripPlanningNavHost(
                             destinationId = destinationId
                         )
                     )
-                }
+                },
+                loadUserTrips = destinationDetailsViewModel::loadUserTrips,
+                trips = userTrips?.trips ?: emptyList(),
+                addDestinationToTrip = destinationDetailsViewModel::addDestinationToTrip,
+                showSnackbarMessage = snackbarViewModel::showSnackbarMessage,
             )
         }
 
