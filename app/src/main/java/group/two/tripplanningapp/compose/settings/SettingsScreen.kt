@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -40,7 +39,8 @@ import group.two.tripplanningapp.viewModels.SettingsViewModel
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel = viewModel(),
     localeConstants: List<LocaleConstant>,
-    showSnackbarMessage: (String) -> Unit
+    showSnackbarMessage: (String) -> Unit,
+    loadCurrentUserLocaleConstantCode: () -> Unit
 ) {
     val (selectedLocaleConstant, setSelectedLocaleConstant) = remember { mutableStateOf(if (localeConstants.isNotEmpty()) localeConstants[0] else LocaleConstant()) }
     val (expanded, setExpanded) = remember { mutableStateOf(false) }
@@ -93,7 +93,8 @@ fun SettingsScreen(
             setExpanded,
             selectedLocaleConstant,
             setSelectedLocaleConstant,
-            settingsViewModel::updateLocaleConstantCode
+            settingsViewModel::updateLocaleConstantCode,
+            loadCurrentUserLocaleConstantCode
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -138,7 +139,8 @@ fun CurrencyDropdown(
     setExpanded: (Boolean) -> Unit,
     selectedLocaleConstant: LocaleConstant,
     setSelectedLocaleConstant: (LocaleConstant) -> Unit,
-    updateLocaleConstantCode: (String) -> Unit
+    updateLocaleConstantCode: (String) -> Unit,
+    loadCurrentUserLocaleConstantCode: () -> Unit
 ) {
     val uniqueLocaleConstants = localeConstants.distinctBy { it.currencyCode }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { setExpanded(it) }) {
@@ -168,6 +170,7 @@ fun CurrencyDropdown(
                 }, onClick = {
                     setSelectedLocaleConstant(localeConstant)
                     updateLocaleConstantCode(localeConstant.code)
+                    loadCurrentUserLocaleConstantCode()
                     setExpanded(false)
                 })
             }
