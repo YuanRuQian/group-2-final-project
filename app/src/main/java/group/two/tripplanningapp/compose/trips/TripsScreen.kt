@@ -13,14 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,11 +40,11 @@ import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.viewModels.DestinationsViewModel
 import group.two.tripplanningapp.viewModels.TripsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripsScreen(
     navigateToCreate: () -> Unit,
-    tripsViewModel: TripsViewModel = TripsViewModel()
+    tripsViewModel: TripsViewModel = TripsViewModel(),
+    formatCurrency: (Int) -> String
 ) {
 
     var trips by remember { mutableStateOf(TripsViewModel.trips) }
@@ -89,11 +87,16 @@ fun TripsScreen(
 //                    }
 //                }
                 itemsIndexed(trips) { index, trip ->
-                    TripCard(index = index, navigateToCreate = navigateToCreate) {
-                        // Remove the trip when close button is clicked
-                        TripsViewModel.trips = TripsViewModel.trips.filterIndexed { i, _ -> i != index }
-                        trips = trips.filterIndexed { i, _ -> i != index }
-                    }
+                    TripCard(
+                        index = index,
+                        navigateToCreate = navigateToCreate,
+                        formatCurrency = formatCurrency,
+                        onCloseClick = {
+                            // Remove the trip when close button is clicked
+                            TripsViewModel.trips =
+                                TripsViewModel.trips.filterIndexed { i, _ -> i != index }
+                            trips = trips.filterIndexed { i, _ -> i != index }
+                        })
                 }
             }
         }
@@ -102,7 +105,7 @@ fun TripsScreen(
             onClick = {
                 // Navigate to another screen when FAB is clicked
                 TripsViewModel.clickIndex = -1
-                 navigateToCreate()
+                navigateToCreate()
             },
             shape = CircleShape,
             modifier = Modifier
@@ -122,17 +125,16 @@ enum class Privacy {
 }
 
 
-
-
-
-
-
-
-
 @Composable
-fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory), navigateToCreate: () -> Unit, onCloseClick: () -> Unit) {
+fun TripCard(
+    index: Int,
+    destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
+    navigateToCreate: () -> Unit,
+    onCloseClick: () -> Unit,
+    formatCurrency: (Int) -> String
+) {
 
-    var trip by remember { mutableStateOf(Trip("",0,Privacy.Private,listOf())) }
+    var trip by remember { mutableStateOf(Trip("", 0, Privacy.Private, listOf())) }
 
     trip = TripsViewModel.trips[index]
 
@@ -148,7 +150,7 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
     for (d in trip.destinations) {
         for (Des in destinationsDes) {
             if (d == Des.name) {
-                Cost = Cost + Des.averageCostPerPersonInCents*trip.numberOfPeople
+                Cost = Cost + Des.averageCostPerPersonInCents * trip.numberOfPeople
             }
         }
     }
@@ -158,10 +160,10 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-            // Handle item click
+                // Handle item click
                 TripsViewModel.clickIndex = index
-                Log.d("Jerry Index",index.toString())
-                Log.d("Jerry clickIndex",TripsViewModel.clickIndex.toString())
+                Log.d("Jerry Index", index.toString())
+                Log.d("Jerry clickIndex", TripsViewModel.clickIndex.toString())
                 navigateToCreate()
             },
         shape = MaterialTheme.shapes.medium
@@ -170,7 +172,6 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
             modifier = Modifier
                 .padding(16.dp)
         ) {
-
 
 
             Row(
@@ -222,7 +223,8 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
                         // Update privacy based on the switch state
 
                         privacy = if (isChecked) Privacy.Private else Privacy.Public
-                        TripsViewModel.trips[index].privacy = if (isChecked) Privacy.Private else Privacy.Public
+                        TripsViewModel.trips[index].privacy =
+                            if (isChecked) Privacy.Private else Privacy.Public
                         trip = TripsViewModel.trips[index]
 
                     }
@@ -251,7 +253,7 @@ fun TripCard(index : Int, destinationsViewModel: DestinationsViewModel = viewMod
             }
 
             Text(
-                text = "Cost: $Cost US Cent",
+                text = "Cost: ${formatCurrency(Cost)}",
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 modifier = Modifier

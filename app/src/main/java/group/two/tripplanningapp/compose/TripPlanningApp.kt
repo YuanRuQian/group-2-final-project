@@ -211,7 +211,8 @@ fun TripPlanningNavHost(
             TripsScreen(
                 navigateToCreate = {
                     navController.navigate(Screen.CreateTrip.route)
-                }
+                },
+                formatCurrency = formatCurrency,
             )
         }
 
