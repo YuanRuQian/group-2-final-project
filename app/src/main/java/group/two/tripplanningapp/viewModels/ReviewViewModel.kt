@@ -8,8 +8,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -56,7 +59,10 @@ class ReviewViewModel : ViewModel() {
         setAvatar: (String) -> Unit,
         setUsername: (String) -> Unit
     ) {
-        Log.d("TripApppDebug", "getReviewerAvatarAndName: $userID, default url: ${defaultAvatarURL.value}")
+        Log.d(
+            "TripApppDebug",
+            "getReviewerAvatarAndName: $userID, default url: ${defaultAvatarURL.value}"
+        )
         setAvatar(defaultAvatarURL.value)
         firestore.collection("userProfiles").document(userID).get()
             .addOnSuccessListener { documentSnapshot ->
@@ -77,8 +83,8 @@ class ReviewViewModel : ViewModel() {
     }
 
     // User Reviews
-    private fun getUserReviews() {
-        Log.d(TAG, "getUserReviews: ")
+  fun getUserReviews() {
+         Log.d(TAG, "getUserReviews: ")
         // Get Review IDs
         if (auth.currentUser == null) {
             return
@@ -109,18 +115,18 @@ class ReviewViewModel : ViewModel() {
         // Get Review IDs
         firestore.collection("destinations").document(destinationID)
             .collection("reviews").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                Log.e(TAG, "Error getting destination($destinationID) review IDs: $error")
+                if (error != null) {
+                    Log.e(TAG, "Error getting destination($destinationID) review IDs: $error")
+                }
+
+                // Step 1: Get User Reviews' IDs as List<String>
+                val destinationReviewIds = snapshot?.documents?.mapNotNull { document ->
+                    document.id
+                } ?: emptyList()
+
+                // Step 2: fetch reviews from the List of IDs
+                fetchReviews(destinationReviewIds, _curDesReviews)
             }
-
-            // Step 1: Get User Reviews' IDs as List<String>
-            val destinationReviewIds = snapshot?.documents?.mapNotNull { document ->
-                document.id
-            } ?: emptyList()
-
-            // Step 2: fetch reviews from the List of IDs
-            fetchReviews(destinationReviewIds, _curDesReviews)
-        }
     }
 
     private fun fetchReviews(reviewIds: List<String>, toBeFetched: MutableState<List<Review>>) {
@@ -128,32 +134,48 @@ class ReviewViewModel : ViewModel() {
         Log.d(TAG, "fetchReviews: reviewIds: $reviewIds")
         val fetchedReviews = mutableListOf<Review>()
 
-        // Loop through each review ID and fetch the corresponding review
+        // Get a reference to the Firestore collection
+        val reviewsCollection = firestore.collection("reviews")
+
+        // Create a list to store tasks for each document fetch
+        val fetchTasks = mutableListOf<Task<DocumentSnapshot>>()
+
+        // Loop through each review ID and create a task for each document fetch
         reviewIds.forEach { reviewId ->
-            val reviewDocumentRef = firestore.collection("reviews").document(reviewId)
-
-            reviewDocumentRef.get().addOnSuccessListener { documentSnapshot ->
-                val review = documentSnapshot.toObject(Review::class.java)
-                review?.let {
-                    // Add the fetched review to the list
-                    it.reviewId = reviewId
-                    // Allow edit when comment it is yours
-                    if (it.creatorID == auth.currentUser?.uid.toString()) it.editable = true
-                    fetchedReviews.add(it)
-                }
-
-                // Check if all reviews have been fetched
-                if (fetchedReviews.size == reviewIds.size) {
-                    // Update with the fetched reviews
-                    toBeFetched.value = fetchedReviews.sortedByDescending { it.timeCreated }
-                    Log.d(TAG, "fetchReviews: success fetchedReviews: ${fetchedReviews.map { it.content }}")
-                }
-
-            }.addOnFailureListener { exception ->
-                Log.e(TAG, "Error getting review with ID $reviewId: $exception")
-            }
+            val reviewRef = reviewsCollection.document(reviewId)
+            fetchTasks.add(reviewRef.get())
         }
+
+        // Create a combined task for all fetch tasks
+        Tasks.whenAllComplete(fetchTasks)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // All tasks completed successfully
+                    task.result?.forEach { taskResult ->
+                        if (taskResult.isSuccessful) {
+                            // Task to fetch a document was successful
+                            val documentSnapshot = taskResult.result as DocumentSnapshot
+                            if (documentSnapshot.exists()) {
+                                val review = documentSnapshot.toObject(Review::class.java)
+                                if (review != null) {
+                                    fetchedReviews.add(review.copy(reviewId = documentSnapshot.id))
+                                }
+                            }
+                        } else {
+                            // Handle failure for a specific task
+                            Log.e(TAG, "Error fetching review", taskResult.exception)
+                        }
+                    }
+
+                    // Update the state with the fetched reviews
+                    toBeFetched.value = fetchedReviews
+                } else {
+                    // Handle the case where any of the tasks failed
+                    Log.e(TAG, "Error fetching reviews", task.exception)
+                }
+            }
     }
+
 
     // Update Reviews
     fun updateReview(reviewId: String, newContent: String, showSnackbarMessage: (String) -> Unit) {
@@ -276,6 +298,11 @@ class ReviewViewModel : ViewModel() {
 
     // Delete Reviews
     fun deleteReview(reviewId: String, showSnackbarMessage: (String) -> Unit) {
+
+        if(reviewId.isEmpty()) {
+            showSnackbarMessage("Error deleting review with empty ID.")
+            return
+        }
 
         // Step 1: Delete in reviews collection: reviews\{reviewID}
         val reviewDocumentRef =

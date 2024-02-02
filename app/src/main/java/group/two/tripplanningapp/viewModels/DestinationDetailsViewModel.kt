@@ -27,6 +27,11 @@ class DestinationDetailsViewModel : ViewModel() {
     private val _userTrips = MutableStateFlow<Trips?>(null)
     val userTrips: StateFlow<Trips?> get() = _userTrips
 
+    fun clearData() {
+        _destination.value = null
+        _userTrips.value = null
+    }
+
     fun loadUserTrips() {
         viewModelScope.launch {
             try {
@@ -99,6 +104,7 @@ class DestinationDetailsViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) {
+        Log.d("DestinationDetailsViewModel", "Adding destination to trip: $destination")
         viewModelScope.launch {
             val tripId = _db.collection("userProfiles").document(getCurrentUserID()).get().await()
                 .getString("trips") ?: ""
