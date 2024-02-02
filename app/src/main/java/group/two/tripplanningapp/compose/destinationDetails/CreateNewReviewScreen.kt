@@ -22,7 +22,7 @@ import group.two.tripplanningapp.compose.RatingBar
 @Composable
 fun CreateNewReviewScreen(
     destinationId: String,
-    createReview: (String, String, Int, (String) -> Unit) -> Unit,
+    createReview: (String, String, Int, (String) -> Unit, () -> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit,
     navigateBack: () -> Unit,
     loadReviewsData: (String) -> Unit,
@@ -66,9 +66,10 @@ fun CreateNewReviewScreen(
                     content,
                     rating,
                     showSnackbarMessage
-                )
-                loadCurrentDestination(destinationId)
-                loadReviewsData(destinationId)
+                ) {
+                    loadCurrentDestination(destinationId)
+                    loadReviewsData(destinationId)
+                }
                 navigateBack()
             },
         ) {

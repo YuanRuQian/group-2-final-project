@@ -113,15 +113,14 @@ class DestinationDetailsViewModel : ViewModel() {
                 Log.e("DestinationDetailsViewModel", "User trips is null")
                 return@launch
             }
-            val newTrips = Trips(
-                trips = userTrips.value?.trips?.mapIndexed { index, trip ->
+            val newTrips = userTrips.value?.trips?.mapIndexed { index, trip ->
                     if (index == tripIndexInTripList) newTrip else trip
                 } ?: listOf()
-            )
-            _db.collection("trips").document(tripId).set(newTrips).addOnCompleteListener {
+
+            _db.collection("trips").document(tripId).update("trips", newTrips).addOnCompleteListener {
                 if (it.isSuccessful) {
                     onSuccess()
-                    _userTrips.value = newTrips
+                    _userTrips.value = Trips(newTrips)
                     Log.d("DestinationDetailsViewModel", "Destination added to trip, new trips: $newTrips")
                 } else {
                     onFailure()

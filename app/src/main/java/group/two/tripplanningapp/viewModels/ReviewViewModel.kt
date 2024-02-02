@@ -204,7 +204,8 @@ class ReviewViewModel : ViewModel() {
         destinationID: String,
         content: String,
         rating: Int,
-        showSnackbarMessage: (String) -> Unit
+        showSnackbarMessage: (String) -> Unit,
+        onSuccessful: () -> Unit
     ) {
         viewModelScope.launch {
 
@@ -270,6 +271,7 @@ class ReviewViewModel : ViewModel() {
                                 destinationRef.collection("reviews").document(reviewID)
                                     .set(newReviewDocument)
                                     .addOnSuccessListener {
+                                        onSuccessful()
                                         showSnackbarMessage("Review added successfully.")
                                     }
                                     .addOnFailureListener { e ->

@@ -11,6 +11,10 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -22,9 +26,45 @@ import group.two.tripplanningapp.utilities.calculateAverageRating
 @Composable
 fun StarRatingStatistics(rating: Rating) {
 
-    val total = rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars
-    val averageRating = calculateAverageRating(rating)
-    val averageRatingFormattedString = "%.2f".format(averageRating)
+    val (total, setTotal) = remember {
+        mutableIntStateOf(rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars)
+    }
+    val (averageRating, setAverageRating) = remember {
+        mutableStateOf(calculateAverageRating(rating))
+    }
+    val (averageRatingFormattedString, setAverageRatingFormattedString) = remember {
+        mutableStateOf("%.2f".format(averageRating))
+    }
+
+    LaunchedEffect(key1 = rating.oneStar) {
+        setTotal(rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars)
+        setAverageRating(calculateAverageRating(rating))
+        setAverageRatingFormattedString("%.2f".format(averageRating))
+    }
+
+    LaunchedEffect(key1 = rating.twoStars) {
+        setTotal(rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars)
+        setAverageRating(calculateAverageRating(rating))
+        setAverageRatingFormattedString("%.2f".format(averageRating))
+    }
+
+    LaunchedEffect(key1 = rating.threeStars) {
+        setTotal(rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars)
+        setAverageRating(calculateAverageRating(rating))
+        setAverageRatingFormattedString("%.2f".format(averageRating))
+    }
+
+    LaunchedEffect(key1 = rating.fourStars) {
+        setTotal(rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars)
+        setAverageRating(calculateAverageRating(rating))
+        setAverageRatingFormattedString("%.2f".format(averageRating))
+    }
+
+    LaunchedEffect(key1 = rating.fiveStars) {
+        setTotal(rating.oneStar + rating.twoStars + rating.threeStars + rating.fourStars + rating.fiveStars)
+        setAverageRating(calculateAverageRating(rating))
+        setAverageRatingFormattedString("%.2f".format(averageRating))
+    }
 
     Column(
         modifier = Modifier
