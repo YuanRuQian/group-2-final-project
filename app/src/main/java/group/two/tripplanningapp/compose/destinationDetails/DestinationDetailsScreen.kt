@@ -58,7 +58,7 @@ fun DestinationDetailsScreen(
     createNewReview: (String) -> Unit,
     loadUserTrips: () -> Unit,
     trips: List<Trip>,
-    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, () -> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
     Log.d("DestinationDetailsScreen", "destinationId: $destinationId")
@@ -115,7 +115,8 @@ fun DestinationDetailsScreen(
                     deleteReview,
                     trips,
                     addDestinationToTrip,
-                    showSnackbarMessage
+                    showSnackbarMessage,
+                    loadReviews
                 )
             }
         }
@@ -132,8 +133,9 @@ fun DestinationDetails(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit,
     trips: List<Trip>,
-    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
-    showSnackbarMessage: (String) -> Unit
+    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, () -> Unit) -> Unit,
+    showSnackbarMessage: (String) -> Unit,
+    loadReviews: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -186,7 +188,9 @@ fun DestinationDetails(
             formatTimestamp = formatTimestamp,
             getReviewerAvatarAndName = getReviewerAvatarAndName,
             updateReview = updateReview,
-            deleteReview = deleteReview
+            deleteReview = deleteReview,
+            destination = destination,
+            loadReviews = loadReviews,
         )
     }
 }
@@ -223,6 +227,8 @@ fun ActivitiesSummary(activities: List<String>) {
 
 @Composable
 fun Reviews(
+    loadReviews: (String) -> Unit,
+    destination: Destination,
     reviews: List<Review>,
     formatTimestamp: (Long) -> String,
     getReviewerAvatarAndName: (String, (String) -> Unit, (String) -> Unit) -> Unit,
@@ -243,7 +249,12 @@ fun Reviews(
                 formatTimestamp = formatTimestamp,
                 getReviewerAvatarAndName = getReviewerAvatarAndName,
                 updateReview = updateReview,
-                deleteReview = deleteReview,
+                deleteReview = { reviewId, showSnackbarMessage ->
+                    run {
+                        deleteReview(reviewId, showSnackbarMessage)
+                        loadReviews(destination.id)
+                    }
+                },
                 allowEditing = review.creatorID == getCurrentUserID()
             )
         }
@@ -254,7 +265,7 @@ fun Reviews(
 fun AddDestinationToTripDropdown(
     trips: List<Trip>,
     destination: Destination,
-    addDestinationToTrip: (Int, Destination, Trip, ()-> Unit, ()-> Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, () -> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
     if (trips.isEmpty()) {
@@ -286,7 +297,7 @@ fun TripsDropdown(
     selectedTrip: Trip,
     setSelectedTrip: (Trip) -> Unit,
     destination: Destination,
-    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, ()->  Unit) -> Unit,
+    addDestinationToTrip: (Int, Destination, Trip, () -> Unit, () -> Unit) -> Unit,
     showSnackbarMessage: (String) -> Unit
 ) {
 
