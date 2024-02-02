@@ -42,7 +42,7 @@ import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.utilities.getCurrentUserID
 
-// TODO: fix after add destination the add button should be disabled
+// TODO: somtimes addDestinationToTrip fails to add the destination to the trip without any error message
 @Composable
 fun DestinationDetailsScreen(
     loadReviews: (String) -> Unit,

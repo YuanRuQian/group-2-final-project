@@ -168,7 +168,7 @@ class ReviewViewModel : ViewModel() {
                     }
 
                     // Update the state with the fetched reviews
-                    toBeFetched.value = fetchedReviews
+                    toBeFetched.value = fetchedReviews.sortedByDescending { it.timeCreated }
                 } else {
                     // Handle the case where any of the tasks failed
                     Log.e(TAG, "Error fetching reviews", task.exception)
@@ -235,58 +235,63 @@ class ReviewViewModel : ViewModel() {
                         .addOnSuccessListener {
                             showSnackbarMessage("Review added successfully.")
                             getUserReviews() // refresh the reviews
+
+                            // Step 3: update destination rating in destinations collection
+                            val destinationDocumentRef =
+                                firestore.collection("destinations").document(destinationID)
+                            destinationDocumentRef.get().addOnSuccessListener { documentSnapshot ->
+                                documentSnapshot.toObject(Destination::class.java)?.let {
+                                    val newRating = it.copy(
+                                        rating =
+                                        when (rating) {
+                                            1 -> it.rating.copy(oneStar = it.rating.oneStar + 1)
+                                            2 -> it.rating.copy(twoStars = it.rating.twoStars + 1)
+                                            3 -> it.rating.copy(threeStars = it.rating.threeStars + 1)
+                                            4 -> it.rating.copy(fourStars = it.rating.fourStars + 1)
+                                            5 -> it.rating.copy(fiveStars = it.rating.fiveStars + 1)
+                                            else -> it.rating
+                                        }
+                                    )
+                                    destinationDocumentRef.set(newRating)
+                                }
+
+
+                                // Step 4: Add review to destination's reviews sub-collection, with a custom document ID
+                                val destinationRef =
+                                    firestore.collection("destinations").document(destinationID)
+
+                                // Use a fixed document ID for the review within the "reviews" sub-collection
+
+                                val newReviewDocument = hashMapOf(
+                                    "documentId" to reviewID
+                                )
+
+// Add the review document to the "reviews" sub-collection
+                                destinationRef.collection("reviews").document(reviewID)
+                                    .set(newReviewDocument)
+                                    .addOnSuccessListener {
+                                        showSnackbarMessage("Review added successfully.")
+                                    }
+                                    .addOnFailureListener { e ->
+                                        // Handle failure, if needed
+                                        Log.e(
+                                            "Firestore",
+                                            "failed to add review to destination's reviews sub-collection",
+                                            e
+                                        )
+                                    }
+
+                            }.addOnFailureListener { exception ->
+                                Log.e(TAG, "Error getting destination: $exception")
+                            }
                         }
                         .addOnFailureListener { exception ->
                             Log.e(TAG, "Error adding review: $exception")
                             showSnackbarMessage("Error adding review.")
                         }
 
-                    // Step 3: update destination rating in destinations collection
-                    val destinationDocumentRef =
-                        firestore.collection("destinations").document(destinationID)
-                    destinationDocumentRef.get().addOnSuccessListener { documentSnapshot ->
-                        documentSnapshot.toObject(Destination::class.java)?.let {
-                            val newRating = it.copy(
-                                rating =
-                                when (rating) {
-                                    1 -> it.rating.copy(oneStar = it.rating.oneStar + 1)
-                                    2 -> it.rating.copy(twoStars = it.rating.twoStars + 1)
-                                    3 -> it.rating.copy(threeStars = it.rating.threeStars + 1)
-                                    4 -> it.rating.copy(fourStars = it.rating.fourStars + 1)
-                                    5 -> it.rating.copy(fiveStars = it.rating.fiveStars + 1)
-                                    else -> it.rating
-                                }
-                            )
-                            destinationDocumentRef.set(newRating)
-                        }
-                    }.addOnFailureListener { exception ->
-                        Log.e(TAG, "Error getting destination: $exception")
-                    }
 
-                    // Step 4: Add review to destination's reviews sub-collection, with a custom document ID
-                    val destinationRef =
-                        firestore.collection("destinations").document(destinationID)
 
-                    // Use a fixed document ID for the review within the "reviews" sub-collection
-
-                    val newReviewDocument = hashMapOf(
-                        "documentId" to reviewID
-                    )
-
-// Add the review document to the "reviews" sub-collection
-                    destinationRef.collection("reviews").document(reviewID)
-                        .set(newReviewDocument)
-                        .addOnSuccessListener {
-                            showSnackbarMessage("Review added successfully.")
-                        }
-                        .addOnFailureListener { e ->
-                            // Handle failure, if needed
-                            Log.e(
-                                "Firestore",
-                                "failed to add review to destination's reviews sub-collection",
-                                e
-                            )
-                        }
 
                 }
                 .addOnFailureListener { exception ->

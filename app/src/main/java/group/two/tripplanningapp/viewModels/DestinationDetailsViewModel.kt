@@ -76,7 +76,7 @@ class DestinationDetailsViewModel : ViewModel() {
     fun loadDestinationDetails(id: String) {
         viewModelScope.launch {
             val res = _db.collection("destinations").document(id).get().await()
-            _destination.value = res.toObject(Destination::class.java)
+            _destination.value = res.toObject(Destination::class.java)?.copy(id = id)
             Log.d("DestinationDetailsViewModel", "Destination: ${_destination.value}")
         }
     }
@@ -104,11 +104,15 @@ class DestinationDetailsViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) {
-        Log.d("DestinationDetailsViewModel", "Adding destination to trip: $destination")
+        Log.d("DestinationDetailsViewModel", "Adding destination to trip: $destination, tripIndexInTripList: $tripIndexInTripList, trip: $trip")
         viewModelScope.launch {
             val tripId = _db.collection("userProfiles").document(getCurrentUserID()).get().await()
                 .getString("trips") ?: ""
             val newTrip = trip.copy(destinations = trip.destinations + destination.name)
+            if (userTrips.value == null) {
+                Log.e("DestinationDetailsViewModel", "User trips is null")
+                return@launch
+            }
             val newTrips = Trips(
                 trips = userTrips.value?.trips?.mapIndexed { index, trip ->
                     if (index == tripIndexInTripList) newTrip else trip
@@ -118,6 +122,7 @@ class DestinationDetailsViewModel : ViewModel() {
                 if (it.isSuccessful) {
                     onSuccess()
                     _userTrips.value = newTrips
+                    Log.d("DestinationDetailsViewModel", "Destination added to trip, new trips: $newTrips")
                 } else {
                     onFailure()
                 }
