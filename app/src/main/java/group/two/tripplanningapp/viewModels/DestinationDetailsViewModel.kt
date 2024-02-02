@@ -104,7 +104,10 @@ class DestinationDetailsViewModel : ViewModel() {
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) {
-        Log.d("DestinationDetailsViewModel", "Adding destination to trip: $destination, tripIndexInTripList: $tripIndexInTripList, trip: $trip")
+        Log.d(
+            "DestinationDetailsViewModel",
+            "Adding destination to trip: $destination, tripIndexInTripList: $tripIndexInTripList, trip: $trip"
+        )
         viewModelScope.launch {
             val tripId = _db.collection("userProfiles").document(getCurrentUserID()).get().await()
                 .getString("trips") ?: ""
@@ -114,18 +117,11 @@ class DestinationDetailsViewModel : ViewModel() {
                 return@launch
             }
             val newTrips = userTrips.value?.trips?.mapIndexed { index, trip ->
-                    if (index == tripIndexInTripList) newTrip else trip
-                } ?: listOf()
+                if (index == tripIndexInTripList) newTrip else trip
+            } ?: listOf()
 
-            _db.collection("trips").document(tripId).update("trips", newTrips).addOnCompleteListener {
-                if (it.isSuccessful) {
-                    onSuccess()
-                    _userTrips.value = Trips(newTrips)
-                    Log.d("DestinationDetailsViewModel", "Destination added to trip, new trips: $newTrips")
-                } else {
-                    onFailure()
-                }
-            }
+            _db.collection("trips").document(tripId).update("trips", newTrips).await()
+            onSuccess()
         }
     }
 }
