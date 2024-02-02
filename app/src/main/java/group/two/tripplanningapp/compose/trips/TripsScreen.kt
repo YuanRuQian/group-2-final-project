@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.viewModels.DestinationsViewModel
 import group.two.tripplanningapp.viewModels.TripsViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun TripsScreen(
@@ -46,6 +48,25 @@ fun TripsScreen(
     tripsViewModel: TripsViewModel = TripsViewModel(),
     formatCurrency: (Int) -> String
 ) {
+
+    var judge by remember { mutableStateOf<Boolean>(false)}
+
+    LaunchedEffect(key1 = true) {
+        while(true) {
+            delay(2000)
+            judge = TripsViewModel.tripsDataState
+            if (judge) {
+                break
+            }
+        }
+
+    }
+
+    if (!judge) {
+        androidx.compose.material.Text(text = "Loading...")
+    }
+
+    else {
 
     var trips by remember { mutableStateOf(TripsViewModel.trips) }
 
@@ -114,7 +135,7 @@ fun TripsScreen(
         ) {
             Icon(Icons.Filled.Add, "Floating action button.")
         }
-    }
+    }}
 
 }
 

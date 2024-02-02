@@ -42,6 +42,8 @@ class TripsViewModel : ViewModel() {
 
         var firstTime = true
 
+        var tripsDataState = false
+
 
 
         // Your logic to fetch trips from Firebase
@@ -143,6 +145,8 @@ class TripsViewModel : ViewModel() {
                             destinations = tripMap["destinations"] as List<String>
                         )
                     } ?: emptyList()
+
+                    tripsDataState = true
                 }
 
                 TripsViewModel.firstTime = false
@@ -160,6 +164,8 @@ class TripsViewModel : ViewModel() {
                 }
 
                 documentD.set(mapOf("trips" to tripsMapList)).await()
+
+                tripsDataState = true
             }
 
 
