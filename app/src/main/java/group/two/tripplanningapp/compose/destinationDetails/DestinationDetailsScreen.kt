@@ -229,14 +229,14 @@ fun Reviews(
     updateReview: (String, String, (String) -> Unit) -> Unit,
     deleteReview: (String, (String) -> Unit) -> Unit
 ) {
-    Log.d("Reviews", "reviews creator IDs: ${reviews.map { it.creatorID }}")
+    Log.d("Reviews", "reviews: $reviews")
     Text(text = "Reviews:")
     if (reviews.isEmpty()) {
         Text(text = "No reviews yet.")
     } else {
         reviews.forEach { review ->
             ReviewCard(
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(8.dp),
                 review = review,
                 showSnackbarMessage = {},
                 showReviewCreator = false,

@@ -324,7 +324,7 @@ fun Profile(
         }
 
         // Reviews
-        LazyColumn {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(userReviews) { review ->
                 ReviewCard(
                     review = review,

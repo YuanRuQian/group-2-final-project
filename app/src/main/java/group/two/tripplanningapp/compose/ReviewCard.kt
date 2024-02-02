@@ -72,7 +72,9 @@ fun ReviewCard(
         getReviewerAvatarAndName(review.creatorID, setReviewerAvatarURL, setReviewerName)
     }
 
-    Log.d("ReviewCard", "reviewerAvatarURL: $reviewerAvatarURL, reviewerName: $reviewerName")
+    LaunchedEffect(key1 = review.content) {
+        editedContent = review.content
+    }
 
     Card(
         modifier = modifier
