@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import group.two.tripplanningapp.compose.Screen
 import group.two.tripplanningapp.compose.SquaredAsyncImage
 import group.two.tripplanningapp.data.Destination
 import group.two.tripplanningapp.utilities.calculateAverageRating
@@ -41,6 +42,7 @@ fun HomeScreen(
     loadCurrentUserLocaleConstantCode: () -> Unit,
     onDestinationClick: (String) -> Unit,
     destinationsViewModel: DestinationsViewModel = viewModel(factory = DestinationsViewModel.Factory),
+    setCurrentRoute: (String) -> Unit
 ) {
     val destinationData = destinationsViewModel.filteredDestinationData.collectAsState()
     val destinations = destinationData.value
@@ -50,8 +52,8 @@ fun HomeScreen(
 
     LaunchedEffect(key1 = true) {
         loadCurrentUserLocaleConstantCode()
+        setCurrentRoute(Screen.Home.route)
     }
-
 
     Column(
         modifier = Modifier

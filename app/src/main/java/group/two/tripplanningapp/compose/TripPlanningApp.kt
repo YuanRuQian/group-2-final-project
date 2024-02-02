@@ -88,14 +88,11 @@ fun TripPlanningApp(
         },
         bottomBar = {
             if (isLoggedIn.value == true) {
-                setCurrentRoute(Screen.Home.route)
                 AppBottomBar(
                     navController = navController,
                     currentRoute = currentRoute,
                     setCurrentRoute = setCurrentRoute
                 )
-            } else {
-                setCurrentRoute(Screen.Login.route)
             }
         },
         snackbarHost = {
@@ -124,7 +121,8 @@ fun TripPlanningApp(
                 reviewViewModel = reviewViewModel,
                 showDialog = ::showDialog,
                 loadCurrentUserLocaleConstantCode = userAuthViewModel::loadCurrentUserLocaleConstantCode,
-                logout = { logout() }
+                logout = { logout() },
+                setCurrentRoute = setCurrentRoute
             )
         }
     }
@@ -141,15 +139,16 @@ fun TripPlanningNavHost(
     reviewViewModel: ReviewViewModel,
     showDialog: (String) -> Unit,
     loadCurrentUserLocaleConstantCode: () -> Unit,
-    logout: () -> Unit
+    logout: () -> Unit,
+    setCurrentRoute: (String) -> Unit
 ) {
-
     val isLoggedIn = userAuthViewModel.isUserLoggedIn.observeAsState()
-    val startDestination = if (isLoggedIn.value == true) {
-        Screen.Home.route
-    } else {
-        Screen.Login.route
-    }
+    val startDestination =
+        if (isLoggedIn.value == true) {
+            Screen.Home.route
+        } else {
+            Screen.Login.route
+        }
     val destination = destinationDetailsViewModel.destination.collectAsState()
     val localeConstantsData = userAuthViewModel.localeConstants.collectAsState()
     val localeConstants = localeConstantsData.value
@@ -206,6 +205,7 @@ fun TripPlanningNavHost(
                         ),
                     )
                 },
+                setCurrentRoute = setCurrentRoute,
             )
         }
 
@@ -245,7 +245,7 @@ fun TripPlanningNavHost(
         composable(
             route = Screen.DestinationDetails.route,
             arguments = Screen.DestinationDetails.navArguments,
-        ) { it ->
+        ) {
             DestinationDetailsScreen(
                 loadReviews = reviewViewModel::getDestinationReviews,
                 destinationId = it.arguments?.getString("destinationId") ?: "",

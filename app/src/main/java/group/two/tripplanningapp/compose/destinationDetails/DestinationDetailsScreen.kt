@@ -42,7 +42,7 @@ import group.two.tripplanningapp.data.Review
 import group.two.tripplanningapp.data.Trip
 import group.two.tripplanningapp.utilities.getCurrentUserID
 
-// TODO: fix screen flickering when navigating to this screen
+// TODO: fix after add destination the add button should be disabled
 @Composable
 fun DestinationDetailsScreen(
     loadReviews: (String) -> Unit,
